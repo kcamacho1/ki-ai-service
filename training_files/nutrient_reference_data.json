@@ -1,0 +1,182 @@
+[
+  {
+    "Nutrient": "Vitamin A",
+    "Type": "Vitamin",
+    "Average Daily Amount": "900 mcg (men), 700 mcg (women)",
+    "Deficiency Symptoms": "Night blindness, dry skin, increased infection risk",
+    "Excess Symptoms": "Liver damage, blurred vision, nausea, bone pain",
+    "Food Sources": "Liver, sweet potatoes, carrots, spinach, eggs",
+    "Gender/Age Notes": "900 mcg for men, 700 mcg for women (19+ yrs)"
+  },
+  {
+    "Nutrient": "Vitamin C",
+    "Type": "Vitamin",
+    "Average Daily Amount": "90 mg (men), 75 mg (women)",
+    "Deficiency Symptoms": "Scurvy, fatigue, poor wound healing",
+    "Excess Symptoms": "Stomach cramps, diarrhea, kidney stones",
+    "Food Sources": "Citrus fruits, strawberries, bell peppers, broccoli",
+    "Gender/Age Notes": "90 mg for men, 75 mg for women (19+ yrs)"
+  },
+  {
+    "Nutrient": "Vitamin D",
+    "Type": "Vitamin",
+    "Average Daily Amount": "600 IU (15 mcg)",
+    "Deficiency Symptoms": "Bone pain, muscle weakness, rickets",
+    "Excess Symptoms": "Calcium buildup, kidney damage",
+    "Food Sources": "Fatty fish, fortified dairy, sunlight",
+    "Gender/Age Notes": "600 IU (15 mcg) for most adults"
+  },
+  {
+    "Nutrient": "Calcium",
+    "Type": "Mineral",
+    "Average Daily Amount": "1000 mg",
+    "Deficiency Symptoms": "Osteoporosis, brittle nails, numbness",
+    "Excess Symptoms": "Kidney stones, constipation, impaired absorption of other minerals",
+    "Food Sources": "Milk, cheese, yogurt, leafy greens, almonds",
+    "Gender/Age Notes": "1000 mg for adults aged 19\u201350; 1200 mg for 51+"
+  },
+  {
+    "Nutrient": "Iron",
+    "Type": "Mineral",
+    "Average Daily Amount": "8 mg (men), 18 mg (women)",
+    "Deficiency Symptoms": "Anemia, fatigue, weakness",
+    "Excess Symptoms": "Organ damage, nausea, vomiting",
+    "Food Sources": "Red meat, beans, fortified cereals, spinach",
+    "Gender/Age Notes": "8 mg for men, 18 mg for women (19\u201350 yrs)"
+  },
+  {
+    "Nutrient": "Magnesium",
+    "Type": "Mineral",
+    "Average Daily Amount": "400-420 mg (men), 310-320 mg (women)",
+    "Deficiency Symptoms": "Muscle cramps, mental disorders, osteoporosis",
+    "Excess Symptoms": "Diarrhea, abdominal cramping",
+    "Food Sources": "Nuts, whole grains, leafy greens, legumes",
+    "Gender/Age Notes": "400\u2013420 mg for men, 310\u2013320 mg for women (19+ yrs)"
+  },
+  {
+    "Nutrient": "Protein",
+    "Type": "Macronutrient",
+    "Average Daily Amount": "56 g (men), 46 g (women)",
+    "Deficiency Symptoms": "Muscle wasting, weakened immunity",
+    "Excess Symptoms": "Kidney strain, digestive issues (in very high amounts)",
+    "Food Sources": "Meat, fish, dairy, legumes, soy",
+    "Gender/Age Notes": "56 g for men, 46 g for women (average adult)"
+  },
+  {
+    "Nutrient": "Carbohydrates",
+    "Type": "Macronutrient",
+    "Average Daily Amount": "225\u2013325 g (based on 2000 kcal diet)",
+    "Deficiency Symptoms": "Fatigue, ketosis, constipation",
+    "Excess Symptoms": "Weight gain, insulin resistance",
+    "Food Sources": "Whole grains, fruits, vegetables, legumes",
+    "Gender/Age Notes": "225\u2013325 g based on 2000 kcal diet"
+  },
+  {
+    "Nutrient": "Fat",
+    "Type": "Macronutrient",
+    "Average Daily Amount": "70\u201377 g (based on 2000 kcal diet)",
+    "Deficiency Symptoms": "Dry skin, hormone imbalances, vitamin deficiencies",
+    "Excess Symptoms": "Weight gain, cardiovascular issues",
+    "Food Sources": "Avocados, nuts, seeds, olive oil, fish",
+    "Gender/Age Notes": "70\u201377 g total fat for a 2000 kcal diet"
+  },
+  {
+    "Nutrient": "Fiber",
+    "Type": "Macronutrient",
+    "Average Daily Amount": "38 g (men), 25 g (women)",
+    "Deficiency Symptoms": "Constipation, poor blood sugar control",
+    "Excess Symptoms": "Bloating, gas, mineral absorption issues",
+    "Food Sources": "Whole grains, fruits, vegetables, legumes",
+    "Gender/Age Notes": "38 g for men, 25 g for women (19\u201350 yrs)"
+  },
+  {
+    "Nutrient": "Zinc",
+    "Type": "Mineral",
+    "Average Daily Amount": "11 mg (men), 8 mg (women)",
+    "Deficiency Symptoms": "Growth retardation, hair loss, delayed wound healing",
+    "Excess Symptoms": "Nausea, vomiting, immune suppression",
+    "Food Sources": "Shellfish, beef, pumpkin seeds, lentils",
+    "Gender/Age Notes": "11 mg for men, 8 mg for women (19+ yrs)"
+  },
+  {
+    "Nutrient": "Potassium",
+    "Type": "Mineral",
+    "Average Daily Amount": "3400 mg (men), 2600 mg (women)",
+    "Deficiency Symptoms": "Muscle weakness, fatigue, heart arrhythmias",
+    "Excess Symptoms": "Irregular heartbeat, muscle paralysis",
+    "Food Sources": "Bananas, potatoes, spinach, beans, avocados",
+    "Gender/Age Notes": "3400 mg men, 2600 mg women (adults)"
+  },
+  {
+    "Nutrient": "Sodium",
+    "Type": "Mineral",
+    "Average Daily Amount": "1500 mg (AI); limit to <2300 mg",
+    "Deficiency Symptoms": "Headache, nausea, muscle cramps",
+    "Excess Symptoms": "High blood pressure, heart disease risk",
+    "Food Sources": "Table salt, processed foods, soups",
+    "Gender/Age Notes": "1500 mg AI; limit to <2300 mg (adults)"
+  },
+  {
+    "Nutrient": "Phosphorus",
+    "Type": "Mineral",
+    "Average Daily Amount": "700 mg",
+    "Deficiency Symptoms": "Bone pain, irregular breathing, fatigue",
+    "Excess Symptoms": "Impaired kidney function, cardiovascular issues",
+    "Food Sources": "Meat, dairy, nuts, legumes",
+    "Gender/Age Notes": "700 mg for adults of all ages"
+  },
+  {
+    "Nutrient": "Iodine",
+    "Type": "Mineral",
+    "Average Daily Amount": "150 mcg",
+    "Deficiency Symptoms": "Goiter, hypothyroidism, developmental issues",
+    "Excess Symptoms": "Thyroid dysfunction, metallic taste",
+    "Food Sources": "Iodized salt, seafood, dairy",
+    "Gender/Age Notes": "150 mcg for adults (19+ yrs)"
+  },
+  {
+    "Nutrient": "Selenium",
+    "Type": "Mineral",
+    "Average Daily Amount": "55 mcg",
+    "Deficiency Symptoms": "Heart disease, male infertility, cognitive decline",
+    "Excess Symptoms": "Hair loss, gastrointestinal upset, nerve damage",
+    "Food Sources": "Brazil nuts, seafood, eggs",
+    "Gender/Age Notes": "55 mcg for adults (19+ yrs)"
+  },
+  {
+    "Nutrient": "Vitamin B12",
+    "Type": "Vitamin",
+    "Average Daily Amount": "2.4 mcg",
+    "Deficiency Symptoms": "Anemia, fatigue, nerve damage",
+    "Excess Symptoms": "No known toxicity from high intake",
+    "Food Sources": "Meat, eggs, dairy, fortified cereals",
+    "Gender/Age Notes": "2.4 mcg for all adults (higher for older adults)"
+  },
+  {
+    "Nutrient": "Vitamin B6",
+    "Type": "Vitamin",
+    "Average Daily Amount": "1.3\u20131.7 mg (adults)",
+    "Deficiency Symptoms": "Irritability, depression, confusion",
+    "Excess Symptoms": "Nerve damage, skin lesions",
+    "Food Sources": "Fish, beef liver, potatoes, bananas",
+    "Gender/Age Notes": "1.3\u20131.7 mg for adults (varies by age/gender)"
+  },
+  {
+    "Nutrient": "Vitamin E",
+    "Type": "Vitamin",
+    "Average Daily Amount": "15 mg",
+    "Deficiency Symptoms": "Nerve and muscle damage, vision problems",
+    "Excess Symptoms": "Increased bleeding risk",
+    "Food Sources": "Nuts, seeds, vegetable oils, spinach",
+    "Gender/Age Notes": "15 mg for adults (19+ yrs)"
+  },
+  {
+    "Nutrient": "Omega-3 Fatty Acids",
+    "Type": "Essential Fat",
+    "Average Daily Amount": "1.6 g (men), 1.1 g (women)",
+    "Deficiency Symptoms": "Dry skin, poor memory, cardiovascular issues",
+    "Excess Symptoms": "Blood thinning, immune suppression (in very high amounts)",
+    "Food Sources": "Fatty fish (salmon, mackerel), flaxseeds, walnuts",
+    "Gender/Age Notes": "1.6 g men, 1.1 g women (19+ yrs)"
+  }
+]

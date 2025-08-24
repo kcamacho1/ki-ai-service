@@ -1,0 +1,27 @@
+[
+  {
+    "Supplement": "Vitamin D",
+    "Upper Limit": "4000 IU",
+    "Notes": "Toxicity can occur above this dose"
+  },
+  {
+    "Supplement": "Iron",
+    "Upper Limit": "45 mg",
+    "Notes": "Overdose risk, especially in children"
+  },
+  {
+    "Supplement": "Calcium",
+    "Upper Limit": "2500 mg",
+    "Notes": "May interfere with iron/magnesium absorption"
+  },
+  {
+    "Supplement": "Magnesium",
+    "Upper Limit": "350 mg (from supplements)",
+    "Notes": "Higher from food OK"
+  },
+  {
+    "Supplement": "Zinc",
+    "Upper Limit": "40 mg",
+    "Notes": "Too much can lower immune function"
+  }
+]

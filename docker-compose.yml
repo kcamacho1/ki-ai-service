@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  ki-ai-service:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - AI_SERVICE_DATABASE_URL=postgresql://ki_ai_user:ki_ai_password@ki-ai-db:5432/ki_ai_service_db
+      - AI_SERVICE_SECRET_KEY=dev-secret-key-change-in-production
+      - VALID_API_KEYS=ki-wellness-ai-service-key,dev-key
+      - OLLAMA_MODEL=mistral
+      - AI_SERVICE_DEBUG=true
+      - ALLOWED_ORIGINS=http://localhost:5000,http://localhost:3000
+    volumes:
+      - ./training_files:/app/training_files
+      - ./training_data:/app/training_data
+      - ./logs:/app/logs
+    depends_on:
+      - ki-ai-db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health/check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  ki-ai-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=ki_ai_service_db
+      - POSTGRES_USER=ki_ai_user
+      - POSTGRES_PASSWORD=ki_ai_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - ki_ai_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ki_ai_user -d ki_ai_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Ollama service (if you want to run Ollama in Docker)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+
+volumes:
+  ki_ai_data:
+  # ollama_data:
