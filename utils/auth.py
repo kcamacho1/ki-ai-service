@@ -9,7 +9,12 @@ import time
 from functools import wraps
 from flask import request, jsonify
 from typing import Optional, Dict, Any
-from models.database import log_api_usage
+try:
+    from models.database import log_api_usage
+except ImportError:
+    def log_api_usage(api_key_hash, endpoint):
+        """Fallback function when database is not available"""
+        pass
 
 def verify_api_key(request_obj) -> bool:
     """Verify the API key from the request"""

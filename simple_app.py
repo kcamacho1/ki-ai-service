@@ -45,15 +45,19 @@ def chat():
         prompt = _build_prompt(user_message, user_tone, custom_instructions)
         
         # Call Ollama
-        response = ollama.chat(
-            model=OLLAMA_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        ai_response = response['message']['content']
+        try:
+            response = ollama.chat(
+                model=OLLAMA_MODEL,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            ai_response = response['message']['content']
+        except Exception as e:
+            print(f"Ollama chat error: {e}")
+            ai_response = "I'm sorry, but I'm currently unable to process your request. The AI service is temporarily unavailable. Please try again later."
         
         # Store conversation
         conversation_entry = {
@@ -110,11 +114,16 @@ def status():
             'conversation_count': len(conversation_history)
         })
     except Exception as e:
+        print(f"Ollama connection error: {e}")
         return jsonify({
-            'success': False,
-            'status': 'unhealthy',
-            'error': str(e)
-        }), 500
+            'success': True,
+            'status': 'degraded',
+            'model': OLLAMA_MODEL,
+            'model_available': False,
+            'available_models': [],
+            'conversation_count': len(conversation_history),
+            'warning': 'Ollama not available - chat functionality disabled'
+        })
 
 def _build_prompt(user_message, tone, instructions):
     """Build the prompt with user preferences"""

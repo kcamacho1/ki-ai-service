@@ -53,10 +53,15 @@ OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'mistral')
 FINE_TUNED_MODEL = os.getenv('FINE_TUNED_MODEL', 'ki-wellness-mistral')
 OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
 
-# Database configuration
-DATABASE_URL = os.getenv('AI_SERVICE_DATABASE_URL')
-if not DATABASE_URL:
-    raise ValueError("AI_SERVICE_DATABASE_URL environment variable is required")
+# Database configuration - use the same database as main app
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Normalize old Heroku-style URLs
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+else:
+    # Fallback to SQLite for development
+    DATABASE_URL = 'sqlite:///ki_ai_service.db'
 
 # Initialize database
 init_db(DATABASE_URL)

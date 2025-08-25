@@ -4,35 +4,45 @@ Database models and connection management for Ki Wellness AI Service
 """
 
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from psycopg2.pool import SimpleConnectionPool
-from typing import Optional, Dict, Any, List
 import json
 from datetime import datetime
+from typing import Optional, Dict, Any, List
+
+# Try to import PostgreSQL, fallback to SQLite if not available
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    from psycopg2.pool import SimpleConnectionPool
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
+    import sqlite3
 
 # Global connection pool
 connection_pool = None
 
 def init_db(database_url: str):
-    """Initialize database tables and connection pool"""
+    """Initialize database connection pool (skip table creation)"""
     global connection_pool
     
     try:
-        # Create connection pool
-        connection_pool = SimpleConnectionPool(
-            minconn=1,
-            maxconn=20,
-            dsn=database_url
-        )
-        
-        # Test connection
-        test_conn = connection_pool.getconn()
-        connection_pool.putconn(test_conn)
-        
-        # Create tables
-        create_tables()
-        print("✅ Database initialized successfully")
+        if POSTGRES_AVAILABLE and database_url.startswith('postgresql://'):
+            # Use PostgreSQL
+            connection_pool = SimpleConnectionPool(
+                minconn=1,
+                maxconn=20,
+                dsn=database_url
+            )
+            
+            # Test connection
+            test_conn = connection_pool.getconn()
+            connection_pool.putconn(test_conn)
+            
+            print("✅ PostgreSQL database connection established successfully")
+        else:
+            # Use SQLite or no database
+            print("⚠️ PostgreSQL not available, running without database functionality")
+            connection_pool = None
         
     except Exception as e:
         print(f"⚠️ Database initialization failed: {e}")
@@ -146,10 +156,14 @@ def log_user_interaction(user_id: str, session_id: str, interaction_type: str,
                         request_data: Dict, response_data: Dict, model_used: str, 
                         response_time_ms: int):
     """Log user interaction for analytics and improvement"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
+    if connection_pool is None:
+        print("⚠️ Database not available - skipping user interaction logging")
+        return
+        
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
         cursor.execute('''
             INSERT INTO user_interactions 
             (user_id, session_id, interaction_type, request_data, response_data, model_used, response_time_ms)
@@ -165,8 +179,12 @@ def log_user_interaction(user_id: str, session_id: str, interaction_type: str,
         ))
         
         conn.commit()
+        cursor.close()
+        return_db_connection(conn)
     except Exception as e:
         print(f"❌ Error logging user interaction: {e}")
+        if 'conn' in locals():
+            return_db_connection(conn)
         conn.rollback()
     finally:
         cursor.close()
