@@ -69,8 +69,13 @@ app.register_blueprint(health_bp, url_prefix='/api/health')
 
 @app.before_request
 def before_request():
-    """Verify API key for all requests"""
+    """Verify API key for all requests except health checks"""
+    # Skip API key verification for health endpoints and static files
     if request.endpoint and 'static' not in request.endpoint:
+        # Allow health endpoints without API key
+        if 'health' in request.endpoint or request.endpoint in ['health', 'index']:
+            return
+        
         if not verify_api_key(request):
             return jsonify({'error': 'Invalid or missing API key'}), 401
 
@@ -86,7 +91,8 @@ def health():
         'service': 'Ki Wellness AI Service',
         'version': '1.0.0',
         'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.utcnow().isoformat(),
+        'message': 'Service is running'
     })
 
 @app.route('/api/status')
