@@ -9,7 +9,7 @@ import time
 from functools import wraps
 from flask import request, jsonify
 from typing import Optional, Dict, Any
-from models.database import log_api_usage
+from ..models.database import log_api_usage
 
 def verify_api_key(request_obj) -> bool:
     """Verify the API key from the request"""

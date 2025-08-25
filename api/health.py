@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify
 import ollama
 from typing import Dict, Any
 
-from models.database import get_db_connection
+from ..models.database import get_db_connection
 
 health_bp = Blueprint('health', __name__)
 
