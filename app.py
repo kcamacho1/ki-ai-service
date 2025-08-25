@@ -5,6 +5,7 @@ Provides AI chat, analysis, and training capabilities for the main Ki Wellness a
 """
 
 import os
+import sys
 import json
 import requests
 import uuid
@@ -18,6 +19,9 @@ import ollama
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from typing import List, Dict, Any, Optional
+
+# Add current directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import local modules
 from api.chat import chat_bp
