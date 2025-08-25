@@ -149,6 +149,15 @@ def index():
         return redirect('/auth/logout')
     return render_template('index.html')
 
+@app.route('/api-keys')
+@login_required
+def api_keys():
+    """Serve the API keys management page - requires admin login"""
+    # Additional check to ensure user is admin
+    if not current_user.is_admin:
+        return redirect('/auth/logout')
+    return render_template('api_keys.html')
+
 @app.route('/health')
 def health():
     """Service health check"""

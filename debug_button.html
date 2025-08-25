@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .hidden { display: none; }
+        #debug-output { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Button Debug Test</h1>
+    
+    <button id="generate-api-key">Generate API Key</button>
+    
+    <div id="generate-key-form" class="hidden">
+        <h3>Generate New API Key</h3>
+        <div>
+            <label>Key Name:</label>
+            <input type="text" id="key-name" placeholder="Enter key name">
+        </div>
+        <div>
+            <label>Description:</label>
+            <textarea id="key-description" placeholder="Enter description"></textarea>
+        </div>
+        <button id="create-api-key">Create Key</button>
+        <button id="cancel-generate">Cancel</button>
+    </div>
+    
+    <div id="debug-output"></div>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('debug-output');
+            output.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+        }
+        
+        // Test the button click
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM loaded');
+            
+            const generateButton = document.getElementById('generate-api-key');
+            log('Generate button found: ' + (generateButton ? 'YES' : 'NO'));
+            
+            if (generateButton) {
+                generateButton.addEventListener('click', () => {
+                    log('Generate button clicked!');
+                    showGenerateKeyForm();
+                });
+                log('Event listener added to generate button');
+            }
+            
+            // Other button event listeners
+            document.getElementById('create-api-key').addEventListener('click', () => {
+                log('Create button clicked!');
+                createApiKey();
+            });
+            
+            document.getElementById('cancel-generate').addEventListener('click', () => {
+                log('Cancel button clicked!');
+                hideGenerateKeyForm();
+            });
+        });
+        
+        function showGenerateKeyForm() {
+            log('showGenerateKeyForm called');
+            document.getElementById('generate-key-form').classList.remove('hidden');
+            log('Form should now be visible');
+        }
+        
+        function hideGenerateKeyForm() {
+            log('hideGenerateKeyForm called');
+            document.getElementById('generate-key-form').classList.add('hidden');
+            document.getElementById('key-name').value = '';
+            document.getElementById('key-description').value = '';
+        }
+        
+        async function createApiKey() {
+            log('createApiKey called');
+            const name = document.getElementById('key-name').value.trim();
+            const description = document.getElementById('key-description').value.trim();
+            
+            if (!name) {
+                log('No name provided');
+                return;
+            }
+            
+            log('Creating API key: ' + name);
+            
+            try {
+                const response = await fetch('/api/settings/api-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'ki-wellness-ai-service-key'
+                    },
+                    body: JSON.stringify({
+                        key_name: name,
+                        description: description
+                    })
+                });
+                
+                const data = await response.json();
+                log('Response: ' + JSON.stringify(data));
+                
+                if (data.success) {
+                    hideGenerateKeyForm();
+                    log('API key created successfully: ' + data.api_key);
+                } else {
+                    log('Failed to create API key: ' + data.error);
+                }
+            } catch (error) {
+                log('Error creating API key: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

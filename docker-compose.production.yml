@@ -1,26 +1,47 @@
 version: '3.8'
 
 services:
+  # Ollama service - runs separately with persistent storage
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ki-ai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    command: ["serve"]
+
+  # Main AI service - depends on Ollama
   ki-ai-service:
     build: .
+    container_name: ki-ai-service
     ports:
       - "5001:5001"
     environment:
       - AI_SERVICE_DATABASE_URL=postgresql://ki_ai_user:ki_ai_password@ki-ai-db:5432/ki_ai_service_db
-      - AI_SERVICE_SECRET_KEY=dev-secret-key-change-in-production
+      - AI_SERVICE_SECRET_KEY=ai-service-secret-key-change-in-production
       - VALID_API_KEYS=ki-wellness-ai-service-key,dev-key
       - OLLAMA_MODEL=mistral
       - OLLAMA_BASE_URL=http://ollama:11434
-      - AI_SERVICE_DEBUG=true
+      - AI_SERVICE_DEBUG=false
       - ALLOWED_ORIGINS=http://localhost:5000,http://localhost:3000
     volumes:
       - ./training_files:/app/training_files
       - ./training_data:/app/training_data
       - ./logs:/app/logs
     depends_on:
-      ki-ai-db:
-        condition: service_healthy
       ollama:
+        condition: service_healthy
+      ki-ai-db:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -30,8 +51,10 @@ services:
       retries: 3
       start_period: 40s
 
+  # Database service
   ki-ai-db:
     image: postgres:15
+    container_name: ki-ai-database
     environment:
       - POSTGRES_DB=ki_ai_service_db
       - POSTGRES_USER=ki_ai_user
@@ -46,21 +69,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Ollama service for AI model hosting
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
 volumes:
   ki_ai_data:

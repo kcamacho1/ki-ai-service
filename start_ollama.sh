@@ -9,7 +9,7 @@ if ! command -v ollama &> /dev/null; then
     curl -fsSL https://ollama.ai/install.sh | sh
 fi
 
-# Start Ollama service in background
+# Start Ollama service in background (if not already running)
 echo "🤖 Starting Ollama service..."
 ollama serve &
 OLLAMA_PID=$!
@@ -20,11 +20,22 @@ sleep 15
 
 # Check if Ollama is responding
 echo "🔍 Checking Ollama status..."
-if curl -f http://localhost:11434/api/tags &> /dev/null; then
-    echo "✅ Ollama is running and responding"
-else
-    echo "❌ Ollama is not responding, waiting longer..."
-    sleep 10
+max_attempts=10
+attempt=0
+while [ $attempt -lt $max_attempts ]; do
+    if curl -f http://localhost:11434/api/tags &> /dev/null; then
+        echo "✅ Ollama is running and responding"
+        break
+    else
+        attempt=$((attempt + 1))
+        echo "⏳ Attempt $attempt/$max_attempts: Ollama not responding yet, waiting..."
+        sleep 10
+    fi
+done
+
+if [ $attempt -eq $max_attempts ]; then
+    echo "❌ Ollama failed to start after $max_attempts attempts"
+    exit 1
 fi
 
 # Check if the required model is available
@@ -32,7 +43,8 @@ echo "📋 Checking available models..."
 if ollama list | grep -q "mistral"; then
     echo "✅ Mistral model is already available"
 else
-    echo "📥 Mistral model not found. Starting download with progress monitoring..."
+    echo "❌ Mistral model not found. This should have been pulled during container startup."
+    echo "📥 Attempting to pull now..."
     
     # Use Python progress monitor if available
     if command -v python3 &> /dev/null && [ -f "ollama_progress.py" ]; then

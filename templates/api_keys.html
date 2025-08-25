@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Keys Management - Ki Wellness AI Service</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ki-green': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-ki-green-50 to-blue-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-sm border-b border-white/50 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-leaf text-ki-green-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">Ki Wellness AI</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-600 hover:text-ki-green-600 transition-colors">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    <a href="/api-keys" class="text-ki-green-600 font-medium">
+                        <i class="fas fa-key mr-2"></i>API Keys
+                    </a>
+                    <a href="/auth/logout" class="text-gray-600 hover:text-red-600 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">API Keys Management</h1>
+            <p class="text-gray-600">Generate and manage API keys to connect your applications to the Ki Wellness AI Service.</p>
+        </div>
+
+        <!-- API Keys Management -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                    <i class="fas fa-key text-ki-green-600"></i>
+                    <span>API Keys</span>
+                </h2>
+                <button id="generate-api-key" class="px-6 py-3 bg-ki-green-600 text-white rounded-lg hover:bg-ki-green-700 transition-colors text-sm font-medium">
+                    <i class="fas fa-plus mr-2"></i>Generate New Key
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="text-sm text-gray-600 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 class="font-medium text-blue-800 mb-2">How to Use API Keys</h4>
+                    <ul class="list-disc list-inside space-y-1 text-blue-700">
+                        <li>Generate an API key for each application that needs access</li>
+                        <li>Include the key in the <code class="bg-blue-100 px-1 rounded">X-API-Key</code> header of your requests</li>
+                        <li>Keep your API keys secure and don't share them publicly</li>
+                        <li>You can revoke keys at any time by deleting them</li>
+                    </ul>
+                </div>
+                
+                <!-- API Keys List -->
+                <div id="api-keys-list" class="space-y-4">
+                    <!-- API keys will be loaded here -->
+                    <div class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-ki-green-600 text-2xl mb-2"></i>
+                        <p class="text-gray-500">Loading API keys...</p>
+                    </div>
+                </div>
+                
+                <!-- Generate New Key Form -->
+                <div id="generate-key-form" class="hidden space-y-4 p-6 bg-gray-50 rounded-lg border">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Generate New API Key</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Key Name *</label>
+                            <input type="text" id="key-name" placeholder="e.g., Ki Wellness App, Mobile App, Web Dashboard" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-ki-green-500 focus:border-transparent text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea id="key-description" rows="2" placeholder="Brief description of what this key will be used for..." class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-ki-green-500 focus:border-transparent text-sm"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 pt-2">
+                        <button id="create-api-key" class="px-4 py-2 bg-ki-green-600 text-white rounded-lg hover:bg-ki-green-700 transition-colors text-sm font-medium">
+                            <i class="fas fa-key mr-2"></i>Create API Key
+                        </button>
+                        <button id="cancel-generate" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Generated Key Display -->
+                <div id="generated-key-display" class="hidden space-y-4 p-6 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        <span class="text-lg font-medium text-green-800">API Key Generated Successfully!</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your API Key</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="generated-api-key" readonly class="flex-1 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm font-mono">
+                            <button id="copy-api-key" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+                            <div class="text-sm text-yellow-800">
+                                <strong>Important:</strong> Copy this key now! It won't be shown again for security reasons.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="text-sm text-blue-800">
+                            <strong>Environment Variable:</strong> Add this to your Ki Wellness .env file:<br>
+                            <code class="bg-blue-100 px-2 py-1 rounded font-mono text-xs">AI_SERVICE_API_KEY=your_generated_key_here</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Documentation -->
+        <div class="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                <i class="fas fa-book text-ki-green-600"></i>
+                <span>API Documentation</span>
+            </h2>
+            
+            <div class="space-y-6">
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Authentication</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600 mb-3">All API requests require authentication using your API key in the header:</p>
+                        <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">X-API-Key: your_api_key_here</code>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Example Request</h3>
+                    </div>
+                    <div class="p-4">
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>curl -X POST "http://localhost:5001/api/chat/message" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key_here" \
+  -d '{
+    "message": "Hello, how can you help me with wellness?",
+    "context_type": "basic"
+  }'</code></pre>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Available Endpoints</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-sm">POST /api/chat/message</span>
+                                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Chat</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-sm">POST /api/analysis/generate</span>
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Analysis</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-sm">GET /api/status</span>
+                                <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        class ApiKeysManager {
+            constructor() {
+                this.initializeEventListeners();
+                this.loadApiKeys();
+            }
+            
+            initializeEventListeners() {
+                // API Key functionality
+                document.getElementById('generate-api-key').addEventListener('click', () => this.showGenerateKeyForm());
+                document.getElementById('create-api-key').addEventListener('click', () => this.createApiKey());
+                document.getElementById('cancel-generate').addEventListener('click', () => this.hideGenerateKeyForm());
+                document.getElementById('copy-api-key').addEventListener('click', () => this.copyApiKey());
+            }
+            
+            async loadApiKeys() {
+                try {
+                    const response = await fetch('/api/settings/api-keys', {
+                        headers: {
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.displayApiKeys(data.api_keys);
+                    } else {
+                        this.showToast('Failed to load API keys: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Could not load API keys: ' + error.message, 'error');
+                }
+            }
+            
+            displayApiKeys(apiKeys) {
+                const container = document.getElementById('api-keys-list');
+                container.innerHTML = '';
+                
+                if (apiKeys.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-key text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">No API keys generated yet</p>
+                            <p class="text-gray-400 text-sm mt-2">Click "Generate New Key" to create your first API key</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                apiKeys.forEach(key => {
+                    const keyElement = document.createElement('div');
+                    keyElement.className = 'bg-white p-6 rounded-lg border border-gray-200 shadow-sm';
+                    keyElement.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h5 class="font-semibold text-lg text-gray-900">${key.key_name}</h5>
+                                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Active</span>
+                                </div>
+                                <p class="text-gray-600 mb-3">${key.description || 'No description provided'}</p>
+                                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                    <span class="flex items-center space-x-1">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Created: ${new Date(key.created_at).toLocaleDateString()}</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Usage: ${key.usage_count || 0} requests</span>
+                                    </span>
+                                    ${key.last_used ? `
+                                    <span class="flex items-center space-x-1">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Last used: ${new Date(key.last_used).toLocaleDateString()}</span>
+                                    </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <button onclick="apiKeysManager.deleteApiKey(${key.id})" class="text-red-600 hover:text-red-800 transition-colors p-2 hover:bg-red-50 rounded-lg" title="Delete API Key">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(keyElement);
+                });
+            }
+            
+            showGenerateKeyForm() {
+                document.getElementById('generate-key-form').classList.remove('hidden');
+                document.getElementById('generated-key-display').classList.add('hidden');
+            }
+            
+            hideGenerateKeyForm() {
+                document.getElementById('generate-key-form').classList.add('hidden');
+                document.getElementById('generated-key-display').classList.add('hidden');
+                document.getElementById('key-name').value = '';
+                document.getElementById('key-description').value = '';
+            }
+            
+            async createApiKey() {
+                const name = document.getElementById('key-name').value.trim();
+                const description = document.getElementById('key-description').value.trim();
+                
+                if (!name) {
+                    this.showToast('Please enter a key name', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/settings/api-keys', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        },
+                        body: JSON.stringify({
+                            key_name: name,
+                            description: description
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.hideGenerateKeyForm();
+                        this.showGeneratedKey(data.api_key);
+                        this.loadApiKeys(); // Refresh the list
+                    } else {
+                        this.showToast('Failed to create API key: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error creating API key: ' + error.message, 'error');
+                }
+            }
+            
+            showGeneratedKey(apiKey) {
+                document.getElementById('generated-api-key').value = apiKey;
+                document.getElementById('generated-key-display').classList.remove('hidden');
+            }
+            
+            copyApiKey() {
+                const apiKeyInput = document.getElementById('generated-api-key');
+                apiKeyInput.select();
+                apiKeyInput.setSelectionRange(0, 99999); // For mobile devices
+                
+                try {
+                    document.execCommand('copy');
+                    this.showToast('API key copied to clipboard!', 'success');
+                } catch (err) {
+                    // Fallback for modern browsers
+                    navigator.clipboard.writeText(apiKeyInput.value).then(() => {
+                        this.showToast('API key copied to clipboard!', 'success');
+                    }).catch(() => {
+                        this.showToast('Failed to copy API key', 'error');
+                    });
+                }
+            }
+            
+            async deleteApiKey(keyId) {
+                if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/settings/api-keys/${keyId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.showToast('API key deleted successfully!', 'success');
+                        this.loadApiKeys();
+                    } else {
+                        this.showToast('Failed to delete API key: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error deleting API key: ' + error.message, 'error');
+                }
+            }
+            
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                
+                const bgColor = type === 'success' ? 'bg-green-500' : 
+                               type === 'error' ? 'bg-red-500' : 
+                               type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+                
+                toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300`;
+                toast.textContent = message;
+                
+                container.appendChild(toast);
+                
+                // Show toast
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Hide toast after 3 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        container.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+        }
+        
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.apiKeysManager = new ApiKeysManager();
+        });
+    </script>
+</body>
+</html>
