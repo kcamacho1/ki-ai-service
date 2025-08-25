@@ -19,11 +19,17 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p training_files training_data logs
 
+# Debug: Verify file structure and Python path
+RUN echo "=== File structure ===" && ls -la /app && \
+    echo "=== Models directory ===" && ls -la /app/models/ && \
+    echo "=== Python path ===" && python -c "import sys; print('\\n'.join(sys.path))"
+
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 # Expose port
 EXPOSE 5001
