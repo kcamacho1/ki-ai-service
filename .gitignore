@@ -82,7 +82,8 @@ training_files/Nutritionist_Textbook_Updated_2.25_part_*.pdf
 
 # Ollama models and data
 .ollama/
-models/
+models/*.gguf
+models/*.bin
 *.gguf
 *.bin
 
