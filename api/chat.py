@@ -11,9 +11,9 @@ from flask import Blueprint, request, jsonify
 import ollama
 from typing import Dict, Any, Optional
 
-from ..utils.auth import require_api_key, get_user_from_request, generate_session_id, sanitize_input
-from ..models.database import log_user_interaction, get_knowledge_base_content
-from ..resources.health_resources import get_relevant_resources, format_resources_for_prompt
+from utils.auth import require_api_key, get_user_from_request, generate_session_id, sanitize_input
+from models.database import log_user_interaction, get_knowledge_base_content
+from resources.health_resources import get_relevant_resources, format_resources_for_prompt
 
 chat_bp = Blueprint('chat', __name__)
 

@@ -20,13 +20,13 @@ from psycopg2.extras import RealDictCursor
 from typing import List, Dict, Any, Optional
 
 # Import local modules
-from .api.chat import chat_bp
-from .api.analysis import analysis_bp
-from .api.training import training_bp
-from .api.health import health_bp
-from .models.database import init_db, get_db_connection
-from .utils.auth import verify_api_key, rate_limit_by_user
-from .resources.health_resources import get_relevant_resources, format_resources_for_prompt
+from api.chat import chat_bp
+from api.analysis import analysis_bp
+from api.training import training_bp
+from api.health import health_bp
+from models.database import init_db, get_db_connection
+from utils.auth import verify_api_key, rate_limit_by_user
+from resources.health_resources import get_relevant_resources, format_resources_for_prompt
 
 # Load environment variables
 load_dotenv()

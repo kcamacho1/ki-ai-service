@@ -12,8 +12,8 @@ import ollama
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
-from ..utils.auth import require_api_key, get_user_from_request, sanitize_input
-from ..models.database import log_user_interaction, store_training_example, get_knowledge_base_content
+from utils.auth import require_api_key, get_user_from_request, sanitize_input
+from models.database import log_user_interaction, store_training_example, get_knowledge_base_content
 
 training_bp = Blueprint('training', __name__)
 

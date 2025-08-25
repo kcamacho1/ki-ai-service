@@ -11,8 +11,8 @@ from flask import Blueprint, request, jsonify
 import ollama
 from typing import Dict, Any, Optional
 
-from ..utils.auth import require_api_key, get_user_from_request, generate_session_id, sanitize_input
-from ..models.database import log_user_interaction, get_knowledge_base_content
+from utils.auth import require_api_key, get_user_from_request, generate_session_id, sanitize_input
+from models.database import log_user_interaction, get_knowledge_base_content
 
 analysis_bp = Blueprint('analysis', __name__)
 
