@@ -1,0 +1,19 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="ki_ai_service",
+    version="1.0.0",
+    packages=find_packages(),
+    install_requires=[
+        "Flask==2.3.3",
+        "Flask-CORS==4.0.0",
+        "Flask-Limiter==3.5.0",
+        "psycopg2-binary==2.9.7",
+        "ollama==0.1.7",
+        "python-dotenv==1.0.0",
+        "PyPDF2==3.0.1",
+        "python-docx==0.8.11",
+        "gunicorn==21.2.0",
+        "requests==2.31.0",
+    ],
+)

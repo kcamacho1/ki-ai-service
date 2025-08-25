@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Install the package in development mode
+RUN pip install -e .
+
 # Create necessary directories
 RUN mkdir -p training_files training_data logs
 
@@ -23,6 +26,7 @@ RUN mkdir -p training_files training_data logs
 ENV PYTHONPATH=/app
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
+ENV PYTHONUNBUFFERED=1
 
 # Expose port
 EXPOSE 5001
@@ -32,4 +36,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5001/api/health/check || exit 1
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "4", "--timeout", "120", "--chdir", "/app", "app:app"]
+CMD ["sh", "-c", "cd /app && gunicorn --bind 0.0.0.0:5001 --workers 4 --timeout 120 app:app"]
