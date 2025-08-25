@@ -39,6 +39,19 @@ from resources.health_resources import get_relevant_resources, format_resources_
 # Load environment variables
 load_dotenv()
 
+# Configure Ollama client
+if os.getenv('OLLAMA_BASE_URL'):
+    ollama.set_host(os.getenv('OLLAMA_BASE_URL'))
+
+def safe_ollama_chat(model, messages, fallback_response="I'm experiencing technical difficulties. Please try again later."):
+    """Safely make Ollama API calls with error handling"""
+    try:
+        response = ollama.chat(model=model, messages=messages)
+        return response['message']['content']
+    except Exception as e:
+        print(f"Ollama connection error: {e}")
+        return fallback_response
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('AI_SERVICE_SECRET_KEY', 'ai-service-secret-key-change-in-production')
 
@@ -154,10 +167,9 @@ def status():
         # Check Ollama connection
         ollama_status = 'healthy'
         try:
-            response = ollama.chat(
-                model=OLLAMA_MODEL,
-                messages=[{"role": "user", "content": "Hello"}]
-            )
+            response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Hello"}])
+            if response == "I'm experiencing technical difficulties. Please try again later.":
+                ollama_status = 'unhealthy: connection failed'
         except Exception as e:
             ollama_status = f'unhealthy: {str(e)}'
         
@@ -171,7 +183,7 @@ def status():
         
         return jsonify({
             'service': 'Ki Wellness AI Service',
-            'status': 'healthy',
+            'status': 'healthy' if 'unhealthy' not in ollama_status and 'unhealthy' not in db_status else 'degraded',
             'components': {
                 'ollama': ollama_status,
                 'database': db_status
@@ -184,6 +196,36 @@ def status():
             'status': 'unhealthy',
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/api/ollama-status')
+def ollama_status():
+    """Detailed Ollama status endpoint"""
+    try:
+        # Test Ollama connection
+        test_response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Test"}])
+        
+        if test_response == "I'm experiencing technical difficulties. Please try again later.":
+            return jsonify({
+                'status': 'unhealthy',
+                'error': 'Ollama connection failed',
+                'model': OLLAMA_MODEL,
+                'base_url': os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+            }), 500
+        
+        return jsonify({
+            'status': 'healthy',
+            'model': OLLAMA_MODEL,
+            'base_url': os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
+            'test_response': test_response[:100] + '...' if len(test_response) > 100 else test_response
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'model': OLLAMA_MODEL,
+            'base_url': os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
         }), 500
 
 @app.errorhandler(404)

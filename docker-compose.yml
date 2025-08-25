@@ -10,6 +10,7 @@ services:
       - AI_SERVICE_SECRET_KEY=dev-secret-key-change-in-production
       - VALID_API_KEYS=ki-wellness-ai-service-key,dev-key
       - OLLAMA_MODEL=mistral
+      - OLLAMA_BASE_URL=http://ollama:11434
       - AI_SERVICE_DEBUG=true
       - ALLOWED_ORIGINS=http://localhost:5000,http://localhost:3000
     volumes:
@@ -18,6 +19,7 @@ services:
       - ./logs:/app/logs
     depends_on:
       - ki-ai-db
+      - ollama
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/api/health/check"]
@@ -43,15 +45,21 @@ services:
       timeout: 5s
       retries: 5
 
-  # Optional: Ollama service (if you want to run Ollama in Docker)
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   ports:
-  #     - "11434:11434"
-  #   volumes:
-  #     - ollama_data:/root/.ollama
-  #   restart: unless-stopped
+  # Ollama service for AI model hosting
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
   ki_ai_data:
-  # ollama_data:
+  ollama_data:
