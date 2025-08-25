@@ -3,95 +3,1005 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ki Wellness AI Service</title>
+    <title>Ki Wellness AI Service - Self Health Simplified</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'quicksand': ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        'ki-green': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            min-height: 100vh;
+        .chat-message {
+            animation: fadeInUp 0.3s ease-out;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        h1 {
-            color: #16a34a;
-            text-align: center;
-            margin-bottom: 10px;
+        
+        .typing-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #16a34a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .status {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+        
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
         }
-        .endpoint {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            font-family: monospace;
+        
+        .file-upload-area.dragover {
+            border-color: #16a34a;
+            background-color: #f0fdf4;
         }
-        .method {
-            color: #16a34a;
-            font-weight: bold;
+        
+        .progress-bar {
+            transition: width 0.3s ease;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🌿 Ki Wellness AI Service</h1>
-        <p class="subtitle">Self Health Simplified - AI-Powered Wellness Companion</p>
-        
-        <div class="status">
-            <h3>✅ Service Status: Running</h3>
-            <p>The AI service is operational and ready to handle requests.</p>
+<body class="font-quicksand bg-gradient-to-br from-ki-green-50 via-blue-50 to-purple-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-sm border-b border-ki-green-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-ki-green-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-leaf text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-ki-green-600 to-blue-600 bg-clip-text text-transparent">
+                            Ki Wellness AI
+                        </h1>
+                        <p class="text-sm text-gray-600">Self Health Simplified</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div id="service-status" class="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>Service Online</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="user-name">Admin</span>
+                    </div>
+                    <a href="/auth/logout" class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+            </div>
         </div>
-        
-        <h3>Available Endpoints:</h3>
-        
-        <div class="endpoint">
-            <span class="method">GET</span> /api/status - Service health check
-        </div>
-        
-        <div class="endpoint">
-            <span class="method">POST</span> /api/chat/message - AI chat messages
-        </div>
-        
-        <div class="endpoint">
-            <span class="method">POST</span> /api/chat/enhanced - Enhanced AI chat
-        </div>
-        
-        <div class="endpoint">
-            <span class="method">POST</span> /api/analysis/generate - Generate AI analysis
-        </div>
-        
-        <div class="endpoint">
-            <span class="method">POST</span> /api/training/process-files - Process training files
-        </div>
-        
-        <div class="endpoint">
-            <span class="method">GET</span> /api/health/check - Health check
-        </div>
-        
-        <div class="endpoint">
-            <span class="method">GET</span> /api/health/detailed - Detailed health status
-        </div>
-        
+    </header>
 
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chat Interface -->
+            <div class="lg:col-span-2">
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 p-6 h-[600px] flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                            <i class="fas fa-comments text-ki-green-600"></i>
+                            <span>AI Health Coach</span>
+                        </h2>
+                        <button id="clear-chat" class="text-sm text-gray-500 hover:text-ki-green-600 transition-colors">
+                            <i class="fas fa-trash mr-1"></i>Clear Chat
+                        </button>
+                    </div>
+                    
+                    <!-- Chat Messages -->
+                    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-gray-50 rounded-xl">
+                        <div class="chat-message bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-gradient-to-br from-ki-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-gray-900">
+                                        Hello! I'm your AI Health Coach. I'm here to help you with wellness questions, nutrition advice, and health guidance. 
+                                        You can also upload files to help me provide more personalized responses.
+                                    </p>
+                                    <p class="text-sm text-gray-500 mt-2">
+                                        Ask me anything about health, nutrition, exercise, or wellness!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="flex space-x-3">
+                        <div class="flex-1 relative">
+                            <input type="text" id="chat-input" 
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-ki-green-500 focus:border-transparent outline-none transition-all"
+                                   placeholder="Ask me about health, nutrition, or wellness...">
+                            <button id="send-message" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-ki-green-600 hover:text-ki-green-700 transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Upload & Settings -->
+            <div class="space-y-6">
+                <!-- File Upload -->
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                            <i class="fas fa-cloud-upload-alt text-ki-green-600"></i>
+                            <span>Upload Files for RAG</span>
+                        </h3>
+                        <button id="save-files" class="px-4 py-2 bg-ki-green-600 text-white rounded-lg hover:bg-ki-green-700 transition-colors text-sm">
+                            <i class="fas fa-save mr-1"></i>Save Files
+                        </button>
+                    </div>
+                    
+                    <div id="file-upload-area" class="file-upload-area rounded-xl p-6 text-center cursor-pointer">
+                        <i class="fas fa-file-upload text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2">Drag & drop files here</p>
+                        <p class="text-sm text-gray-500">or click to browse</p>
+                        <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt,.csv,.json,.md" class="hidden">
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div id="upload-progress" class="hidden mt-4">
+                        <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                            <span>Uploading...</span>
+                            <span id="progress-text">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="progress-bar bg-ki-green-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Uploaded Files -->
+                    <div id="uploaded-files" class="mt-4 space-y-2">
+                        <!-- Files will be listed here -->
+                    </div>
+                </div>
+                
+                <!-- Chat Settings -->
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                            <i class="fas fa-cog text-ki-green-600"></i>
+                            <span>Chat Settings</span>
+                        </h3>
+                        <button id="save-chat-settings" class="px-4 py-2 bg-ki-green-600 text-white rounded-lg hover:bg-ki-green-700 transition-colors text-sm">
+                            <i class="fas fa-save mr-1"></i>Save Settings
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Conversation Tone</label>
+                            <select id="chat-tone" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-ki-green-500 focus:border-transparent">
+                                <option value="friendly">Friendly & Supportive</option>
+                                <option value="professional">Professional & Clinical</option>
+                                <option value="casual">Casual & Conversational</option>
+                                <option value="motivational">Motivational & Encouraging</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Response Style</label>
+                            <select id="response-style" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-ki-green-500 focus:border-transparent">
+                                <option value="detailed">Detailed & Comprehensive</option>
+                                <option value="concise">Concise & To-the-Point</option>
+                                <option value="step-by-step">Step-by-Step Guidance</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Expertise Level</label>
+                            <select id="expertise-level" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-ki-green-500 focus:border-transparent">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">System Prompt</label>
+                            <textarea id="chat-system-prompt" rows="3" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-ki-green-500 focus:border-transparent" placeholder="Custom system prompt for the AI...">You are a supportive AI Health Coach for Ki Wellness. Keep responses short, helpful, and actionable.</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/50 p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
+                        <i class="fas fa-bolt text-ki-green-600"></i>
+                        <span>Quick Questions</span>
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <button class="quick-question w-full text-left p-3 bg-gray-50 hover:bg-ki-green-50 rounded-lg transition-colors text-sm">
+                            "What foods boost energy naturally?"
+                        </button>
+                        <button class="quick-question w-full text-left p-3 bg-gray-50 hover:bg-ki-green-50 rounded-lg transition-colors text-sm">
+                            "How much water should I drink daily?"
+                        </button>
+                        <button class="quick-question w-full text-left p-3 bg-gray-50 hover:bg-ki-green-50 rounded-lg transition-colors text-sm">
+                            "What's a good morning routine for wellness?"
+                        </button>
+                        <button class="quick-question w-full text-left p-3 bg-gray-50 hover:bg-ki-green-50 rounded-lg transition-colors text-sm">
+                            "How can I improve my sleep quality?"
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        class KiWellnessAI {
+            constructor() {
+                this.chatMessages = document.getElementById('chat-messages');
+                this.chatInput = document.getElementById('chat-input');
+                this.sendButton = document.getElementById('send-message');
+                this.clearButton = document.getElementById('clear-chat');
+                this.fileInput = document.getElementById('file-input');
+                this.fileUploadArea = document.getElementById('file-upload-area');
+                this.uploadProgress = document.getElementById('upload-progress');
+                this.progressBar = document.getElementById('progress-bar');
+                this.progressText = document.getElementById('progress-text');
+                this.uploadedFiles = document.getElementById('uploaded-files');
+                this.serviceStatus = document.getElementById('service-status');
+                
+                this.uploadedFilesList = [];
+                this.isTyping = false;
+                
+                            this.initializeEventListeners();
+            this.checkServiceStatus();
+            this.loadUserInfo();
+            this.loadSettings();
+            this.loadGlobalFiles();
+            this.loadChatSettings();
+            }
+            
+            initializeEventListeners() {
+                // Chat functionality
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+                
+                this.clearButton.addEventListener('click', () => this.clearChat());
+                
+                // File upload
+                this.fileUploadArea.addEventListener('click', () => this.fileInput.click());
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files));
+                
+                // Drag and drop
+                this.fileUploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.fileUploadArea.classList.add('dragover');
+                });
+                
+                this.fileUploadArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    this.fileUploadArea.classList.remove('dragover');
+                });
+                
+                this.fileUploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.fileUploadArea.classList.remove('dragover');
+                    this.handleFileSelect(e.dataTransfer.files);
+                });
+                
+                // Quick questions
+                document.querySelectorAll('.quick-question').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.chatInput.value = button.textContent.replace(/"/g, '');
+                        this.sendMessage();
+                    });
+                });
+                
+                // Settings functionality
+                document.getElementById('save-settings').addEventListener('click', () => this.saveSettings());
+                document.getElementById('upload-global-file').addEventListener('click', () => this.uploadGlobalFile());
+                document.getElementById('save-chat-settings').addEventListener('click', () => this.saveChatSettings());
+                document.getElementById('save-files').addEventListener('click', () => this.saveFiles());
+                
+                // Tab switching
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', () => this.switchTab(button.dataset.tab));
+                });
+                
+                // Temperature slider
+                document.getElementById('temperature-slider').addEventListener('input', (e) => {
+                    document.getElementById('temperature-value').textContent = e.target.value;
+                });
+            }
+            
+            async checkServiceStatus() {
+                try {
+                    const response = await fetch('/api/status', {
+                        headers: {
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        this.serviceStatus.innerHTML = `
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span>Service Online</span>
+                        `;
+                    } else {
+                        this.serviceStatus.innerHTML = `
+                            <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <span>Service Offline</span>
+                        `;
+                    }
+                } catch (error) {
+                    this.serviceStatus.innerHTML = `
+                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span>Service Offline</span>
+                    `;
+                }
+            }
+            
+            async loadUserInfo() {
+                try {
+                    const response = await fetch('/auth/check-auth');
+                    const data = await response.json();
+                    
+                    if (data.success && data.user) {
+                        document.getElementById('user-name').textContent = data.user.name || data.user.username;
+                    }
+                } catch (error) {
+                    console.log('Could not load user info:', error);
+                }
+            }
+            
+            async loadSettings() {
+                try {
+                    const response = await fetch('/api/settings/active-settings');
+                    const data = await response.json();
+                    
+                    if (data.success && data.settings) {
+                        this.populateSettingsForm(data.settings);
+                    }
+                } catch (error) {
+                    console.log('Could not load settings:', error);
+                }
+            }
+            
+            async loadGlobalFiles() {
+                try {
+                    const response = await fetch('/api/settings/files');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.displayGlobalFiles(data.files);
+                    }
+                } catch (error) {
+                    console.log('Could not load global files:', error);
+                }
+            }
+            
+            populateSettingsForm(settings) {
+                document.getElementById('setting-name').value = settings.name || '';
+                document.getElementById('model-select').value = settings.model_name || 'mistral';
+                document.getElementById('temperature-slider').value = settings.temperature || 0.7;
+                document.getElementById('temperature-value').textContent = settings.temperature || 0.7;
+                document.getElementById('max-tokens').value = settings.max_tokens || 2000;
+                document.getElementById('response-style').value = settings.response_style || 'professional';
+                document.getElementById('context-window').value = settings.context_window || 10;
+                document.getElementById('system-prompt').value = settings.system_prompt || 'You are a helpful AI assistant for Ki Wellness.';
+                document.getElementById('enable-memory').checked = settings.enable_memory !== false;
+                document.getElementById('include-sources').checked = settings.include_sources !== false;
+                document.getElementById('use-global-files').checked = settings.use_global_files !== false;
+            }
+            
+            displayGlobalFiles(files) {
+                const container = document.getElementById('global-files-list');
+                container.innerHTML = '';
+                
+                files.forEach(file => {
+                    const fileElement = document.createElement('div');
+                    fileElement.className = 'bg-gray-50 p-3 rounded-lg border';
+                    fileElement.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h5 class="font-medium text-sm">${file.original_filename}</h5>
+                                <p class="text-xs text-gray-600 mt-1">${file.content_summary || 'No summary available'}</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${file.category || 'General'}</span>
+                                    <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Priority: ${file.priority}</span>
+                                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Used: ${file.usage_count}</span>
+                                </div>
+                            </div>
+                            <button onclick="aiApp.deleteGlobalFile(${file.id})" class="text-red-600 hover:text-red-800 text-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(fileElement);
+                });
+            }
+            
+            async saveSettings() {
+                try {
+                    const settings = {
+                        name: document.getElementById('setting-name').value,
+                        model_name: document.getElementById('model-select').value,
+                        temperature: parseFloat(document.getElementById('temperature-slider').value),
+                        max_tokens: parseInt(document.getElementById('max-tokens').value),
+                        response_style: document.getElementById('response-style').value,
+                        context_window: parseInt(document.getElementById('context-window').value),
+                        system_prompt: document.getElementById('system-prompt').value,
+                        enable_memory: document.getElementById('enable-memory').checked,
+                        include_sources: document.getElementById('include-sources').checked,
+                        use_global_files: document.getElementById('use-global-files').checked
+                    };
+                    
+                    const response = await fetch('/api/settings/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        },
+                        body: JSON.stringify(settings)
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.showToast('Settings saved successfully!', 'success');
+                    } else {
+                        this.showToast('Failed to save settings: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error saving settings: ' + error.message, 'error');
+                }
+            }
+            
+            async uploadGlobalFile() {
+                const fileInput = document.getElementById('global-file-input');
+                const category = document.getElementById('file-category').value;
+                const tags = document.getElementById('file-tags').value;
+                const priority = document.getElementById('file-priority').value;
+                
+                if (!fileInput.files[0]) {
+                    this.showToast('Please select a file to upload', 'error');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('category', category);
+                formData.append('tags', tags);
+                formData.append('priority', priority);
+                
+                try {
+                    const response = await fetch('/api/settings/files', {
+                        method: 'POST',
+                        headers: {
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.showToast('File uploaded successfully!', 'success');
+                        fileInput.value = '';
+                        document.getElementById('file-category').value = '';
+                        document.getElementById('file-tags').value = '';
+                        document.getElementById('file-priority').value = '1';
+                        this.loadGlobalFiles();
+                    } else {
+                        this.showToast('Failed to upload file: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error uploading file: ' + error.message, 'error');
+                }
+            }
+            
+            async deleteGlobalFile(fileId) {
+                if (!confirm('Are you sure you want to delete this file?')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/settings/files/${fileId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.showToast('File deleted successfully!', 'success');
+                        this.loadGlobalFiles();
+                    } else {
+                        this.showToast('Failed to delete file: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error deleting file: ' + error.message, 'error');
+                }
+            }
+            
+            async saveChatSettings() {
+                try {
+                    const settings = {
+                        name: 'Chat Settings',
+                        description: 'Current chat session settings',
+                        model_name: 'mistral',
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                        response_style: document.getElementById('chat-tone').value,
+                        system_prompt: document.getElementById('chat-system-prompt').value,
+                        context_window: 10,
+                        enable_memory: true,
+                        include_sources: true,
+                        max_response_length: 500,
+                        use_global_files: true,
+                        file_context_limit: 5
+                    };
+                    
+                    const response = await fetch('/api/settings/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        },
+                        body: JSON.stringify(settings)
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.showToast('Chat settings saved successfully!', 'success');
+                        // Store settings in localStorage for current session
+                        localStorage.setItem('chatSettings', JSON.stringify(settings));
+                    } else {
+                        this.showToast('Failed to save chat settings: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error saving chat settings: ' + error.message, 'error');
+                }
+            }
+            
+            async saveFiles() {
+                try {
+                    if (this.uploadedFilesList.length === 0) {
+                        this.showToast('No files to save. Please upload files first.', 'warning');
+                        return;
+                    }
+                    
+                    // Save each uploaded file as a global file
+                    for (const file of this.uploadedFilesList) {
+                        const formData = new FormData();
+                        formData.append('file', file.file);
+                        formData.append('category', 'chat-upload');
+                        formData.append('tags', JSON.stringify(['chat', 'user-upload']));
+                        formData.append('priority', '1');
+                        
+                        const response = await fetch('/api/settings/files', {
+                            method: 'POST',
+                            headers: {
+                                'X-API-Key': 'ki-wellness-ai-service-key'
+                            },
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        if (!data.success) {
+                            this.showToast(`Failed to save file ${file.name}: ${data.error}`, 'error');
+                            return;
+                        }
+                    }
+                    
+                    this.showToast('All files saved successfully!', 'success');
+                    this.uploadedFilesList = [];
+                    this.updateUploadedFilesDisplay();
+                    
+                } catch (error) {
+                    this.showToast('Error saving files: ' + error.message, 'error');
+                }
+            }
+            
+            loadChatSettings() {
+                try {
+                    const savedSettings = localStorage.getItem('chatSettings');
+                    if (savedSettings) {
+                        const settings = JSON.parse(savedSettings);
+                        document.getElementById('chat-tone').value = settings.response_style || 'friendly';
+                        document.getElementById('chat-system-prompt').value = settings.system_prompt || 'You are a supportive AI Health Coach for Ki Wellness. Keep responses short, helpful, and actionable.';
+                    }
+                } catch (error) {
+                    console.log('Could not load chat settings:', error);
+                }
+            }
+            
+            updateUploadedFilesDisplay() {
+                const container = this.uploadedFiles;
+                container.innerHTML = '';
+                
+                this.uploadedFilesList.forEach((file, index) => {
+                    const fileElement = document.createElement('div');
+                    fileElement.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
+                    fileElement.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-file text-gray-500"></i>
+                            <span class="text-sm text-gray-700">${file.name}</span>
+                            <span class="text-xs text-gray-500">(${this.formatFileSize(file.size)})</span>
+                        </div>
+                        <button onclick="aiApp.removeFile(${index})" class="text-red-500 hover:text-red-700 text-sm">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(fileElement);
+                });
+            }
+            
+            removeFile(index) {
+                this.uploadedFilesList.splice(index, 1);
+                this.updateUploadedFilesDisplay();
+            }
+            
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                    button.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active', 'border-blue-500', 'text-blue-600');
+                document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-500');
+                
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            }
+            
+            async sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message || this.isTyping) return;
+                
+                // Add user message
+                this.addMessage(message, 'user');
+                this.chatInput.value = '';
+                
+                // Show typing indicator
+                this.showTypingIndicator();
+                
+                try {
+                    const response = await fetch('/api/chat/message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            context: {
+                                uploaded_files: this.uploadedFilesList,
+                                settings: {
+                                    tone: document.getElementById('chat-tone').value,
+                                    style: document.getElementById('response-style').value,
+                                    expertise_level: document.getElementById('expertise-level').value
+                                }
+                            },
+                            context_type: 'enhanced'
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.hideTypingIndicator();
+                        this.addMessage(data.response, 'ai');
+                    } else {
+                        this.hideTypingIndicator();
+                        this.addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+                    }
+                } catch (error) {
+                    this.hideTypingIndicator();
+                    this.addMessage('Sorry, I\'m having trouble connecting. Please check your internet connection and try again.', 'ai');
+                }
+            }
+            
+            addMessage(content, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message bg-white p-4 rounded-xl shadow-sm border border-gray-100`;
+                
+                const avatar = type === 'ai' ? 
+                    '<div class="w-8 h-8 bg-gradient-to-br from-ki-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-robot text-white text-sm"></i></div>' :
+                    '<div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-user text-white text-sm"></i></div>';
+                
+                messageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        ${avatar}
+                        <div class="flex-1">
+                            <p class="text-gray-900 whitespace-pre-wrap">${this.escapeHtml(content)}</p>
+                        </div>
+                    </div>
+                `;
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+            
+            showTypingIndicator() {
+                this.isTyping = true;
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'chat-message bg-white p-4 rounded-xl shadow-sm border border-gray-100';
+                typingDiv.id = 'typing-indicator';
+                
+                typingDiv.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-ki-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="typing-indicator"></div>
+                        </div>
+                    </div>
+                `;
+                
+                this.chatMessages.appendChild(typingDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+            
+            hideTypingIndicator() {
+                this.isTyping = false;
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            clearChat() {
+                this.chatMessages.innerHTML = `
+                    <div class="chat-message bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-ki-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-gray-900">
+                                    Hello! I'm your AI Health Coach. I'm here to help you with wellness questions, nutrition advice, and health guidance. 
+                                    You can also upload files to help me provide more personalized responses.
+                                </p>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    Ask me anything about health, nutrition, exercise, or wellness!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            async handleFileSelect(files) {
+                if (!files || files.length === 0) return;
+                
+                // Add files to the list for potential saving later
+                Array.from(files).forEach(file => {
+                    this.uploadedFilesList.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        file: file
+                    });
+                });
+                
+                this.updateUploadedFilesDisplay();
+                this.showToast(`${files.length} file(s) added successfully! Use 'Save Files' to store them permanently.`, 'success');
+            }
+            
+            async uploadFile(file) {
+                // Validate file type
+                const allowedTypes = ['.pdf', '.docx', '.txt', '.csv', '.json', '.md'];
+                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                
+                if (!allowedTypes.includes(fileExtension)) {
+                    this.showToast(`File type ${fileExtension} is not supported.`, 'error');
+                    return;
+                }
+                
+                // Validate file size (max 50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    this.showToast('File size must be less than 50MB.', 'error');
+                    return;
+                }
+                
+                // Show upload progress
+                this.showUploadProgress();
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('purpose', 'rag');
+                    
+                    const response = await fetch('/api/training/process-files', {
+                        method: 'POST',
+                        headers: {
+                            'X-API-Key': 'ki-wellness-ai-service-key'
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.uploadedFilesList.push({
+                            name: file.name,
+                            size: file.size,
+                            type: fileExtension
+                        });
+                        this.addUploadedFile(file.name, file.size);
+                        this.showToast(`File "${file.name}" uploaded successfully!`, 'success');
+                    } else {
+                        this.showToast(`Failed to upload "${file.name}": ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    this.showToast(`Failed to upload "${file.name}": ${error.message}`, 'error');
+                } finally {
+                    this.hideUploadProgress();
+                }
+            }
+            
+            addUploadedFile(filename, size) {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg';
+                
+                const sizeInMB = (size / (1024 * 1024)).toFixed(2);
+                
+                fileDiv.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-file-alt text-green-600"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">${filename}</p>
+                            <p class="text-xs text-gray-500">${sizeInMB} MB</p>
+                        </div>
+                    </div>
+                    <button class="remove-file text-red-500 hover:text-red-700 transition-colors" data-filename="${filename}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                fileDiv.querySelector('.remove-file').addEventListener('click', () => {
+                    this.removeUploadedFile(filename);
+                    fileDiv.remove();
+                });
+                
+                this.uploadedFiles.appendChild(fileDiv);
+            }
+            
+            removeUploadedFile(filename) {
+                this.uploadedFilesList = this.uploadedFilesList.filter(file => file.name !== filename);
+                this.showToast(`File "${filename}" removed.`, 'info');
+            }
+            
+            showUploadProgress() {
+                this.uploadProgress.classList.remove('hidden');
+                this.progressBar.style.width = '0%';
+                this.progressText.textContent = '0%';
+                
+                // Simulate progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                    }
+                    this.progressBar.style.width = progress + '%';
+                    this.progressText.textContent = Math.round(progress) + '%';
+                }, 100);
+            }
+            
+            hideUploadProgress() {
+                this.uploadProgress.classList.add('hidden');
+            }
+            
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                
+                const bgColor = type === 'success' ? 'bg-green-500' : 
+                               type === 'error' ? 'bg-red-500' : 
+                               type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+                
+                toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300`;
+                toast.textContent = message;
+                
+                container.appendChild(toast);
+                
+                // Show toast
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Hide toast after 3 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        container.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.aiService = new KiWellnessAI();
+        });
+    </script>
 </body>
 </html>

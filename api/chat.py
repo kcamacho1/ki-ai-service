@@ -8,10 +8,12 @@ import json
 import time
 from datetime import datetime
 from flask import Blueprint, request, jsonify
+from flask_login import login_required, current_user
 import ollama
 from typing import Dict, Any, Optional
 
 from utils.auth import require_api_key, get_user_from_request, generate_session_id, sanitize_input
+from models.settings import AISettings, GlobalFile, db
 try:
     from models.database import log_user_interaction, get_knowledge_base_content
 except ImportError:
@@ -29,6 +31,91 @@ chat_bp = Blueprint('chat', __name__)
 # Configuration
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'mistral')
 FINE_TUNED_MODEL = os.getenv('FINE_TUNED_MODEL', 'ki-wellness-mistral')
+
+def get_active_settings():
+    """Get the currently active AI settings"""
+    try:
+        setting = AISettings.query.filter_by(is_active=True).first()
+        if not setting:
+            # Return default settings
+            return {
+                'model_name': OLLAMA_MODEL,
+                'temperature': 0.7,
+                'max_tokens': 2000,
+                'system_prompt': 'You are a helpful AI assistant for Ki Wellness.',
+                'context_window': 10,
+                'enable_memory': True,
+                'response_style': 'professional',
+                'include_sources': True,
+                'max_response_length': 500,
+                'use_global_files': True,
+                'file_context_limit': 5
+            }
+        return setting.to_dict()
+    except Exception as e:
+        print(f"Error getting active settings: {e}")
+        return {
+            'model_name': OLLAMA_MODEL,
+            'temperature': 0.7,
+            'max_tokens': 2000,
+            'system_prompt': 'You are a helpful AI assistant for Ki Wellness.',
+            'context_window': 10,
+            'enable_memory': True,
+            'response_style': 'professional',
+            'include_sources': True,
+            'max_response_length': 500,
+            'use_global_files': True,
+            'file_context_limit': 5
+        }
+
+def get_relevant_global_files(message, limit=5):
+    """Get relevant global files based on message content"""
+    try:
+        if not get_active_settings().get('use_global_files', True):
+            return []
+        
+        files = GlobalFile.query.filter_by(is_active=True, is_processed=True).order_by(
+            GlobalFile.priority.desc(), GlobalFile.usage_count.desc()
+        ).limit(limit).all()
+        
+        relevant_files = []
+        message_lower = message.lower()
+        
+        for file_obj in files:
+            # Simple relevance check based on tags and category
+            relevance_score = 0
+            
+            # Check tags
+            tags = file_obj.get_tags_list()
+            for tag in tags:
+                if tag.lower() in message_lower:
+                    relevance_score += 2
+            
+            # Check category
+            if file_obj.category and file_obj.category.lower() in message_lower:
+                relevance_score += 1
+            
+            # Check content summary
+            if file_obj.content_summary and any(word in file_obj.content_summary.lower() for word in message_lower.split()):
+                relevance_score += 1
+            
+            if relevance_score > 0:
+                relevant_files.append({
+                    'filename': file_obj.original_filename,
+                    'content': file_obj.content[:1000] if file_obj.content else file_obj.content_summary,
+                    'category': file_obj.category,
+                    'tags': tags
+                })
+                
+                # Update usage count
+                file_obj.usage_count += 1
+                file_obj.last_used = datetime.utcnow()
+        
+        db.session.commit()
+        return relevant_files[:limit]
+    except Exception as e:
+        print(f"Error getting relevant files: {e}")
+        return []
 
 @chat_bp.route('/message', methods=['POST'])
 @require_api_key
@@ -58,20 +145,28 @@ def chat_message():
         
         print(f"AI Chat Request - User: {user_id}, Message: {message[:100]}...")
         
-        # Create optimized prompt
+        # Get active settings and relevant files
+        settings = get_active_settings()
+        relevant_files = get_relevant_global_files(message, settings.get('file_context_limit', 5))
+        
+        # Create optimized prompt with global settings and files
         try:
-            prompt = _create_optimized_prompt(message, context, context_type, chat_history)
+            prompt = _create_optimized_prompt_with_settings(message, context, context_type, chat_history, settings, relevant_files)
             print(f"AI Chat - Prompt length: {len(prompt)} characters")
         except Exception as prompt_error:
             print(f"AI Chat - Prompt creation error: {str(prompt_error)}")
             # Use a simple fallback prompt instead of failing
-            prompt = f"You are a supportive AI Health Coach. Keep responses short, helpful, and actionable.\n\nQuestion: {message}\n\nProvide a helpful response with relevant health information."
+            prompt = f"{settings.get('system_prompt', 'You are a supportive AI Health Coach.')}\n\nQuestion: {message}\n\nProvide a helpful response with relevant health information."
         
-        # Call Ollama
+        # Call Ollama with settings
         try:
             response = ollama.chat(
-                model=OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+                model=settings.get('model_name', OLLAMA_MODEL),
+                messages=[{"role": "user", "content": prompt}],
+                options={
+                    'temperature': settings.get('temperature', 0.7),
+                    'num_predict': settings.get('max_tokens', 2000)
+                }
             )
             
             ai_response = response['message']['content']
@@ -192,58 +287,57 @@ def enhanced_chat():
         print(f"Enhanced Chat - Error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-def _create_optimized_prompt(message: str, context: Dict[str, Any], context_type: str, chat_history: list) -> str:
-    """Create an optimized prompt based on context type"""
+def _create_optimized_prompt_with_settings(message: str, context: Dict[str, Any], context_type: str, chat_history: list, settings: Dict[str, Any], relevant_files: list) -> str:
+    """Create an optimized prompt based on settings and global files"""
     
-    # Safely get context values
-    try:
-        profile = context.get('profile', {}) if context else {}
-        profile_name = profile.get('name', 'User') if profile else 'User'
-    except Exception as e:
-        print(f"Error extracting profile data: {e}")
-        profile_name = 'User'
+    # Use system prompt from settings
+    system_prompt = settings.get('system_prompt', 'You are a supportive AI Health Coach for Ki Wellness. Keep responses short, helpful, and actionable.')
     
-    # Start with base prompt
-    base_prompt = f"You are a supportive AI Health Coach for {profile_name}. Keep responses short, helpful, and actionable.\n\nQuestion: {message}\n\n"
+    # Add response style instructions
+    response_style = settings.get('response_style', 'professional')
+    if response_style == 'friendly':
+        system_prompt += " Respond in a friendly, approachable manner."
+    elif response_style == 'casual':
+        system_prompt += " Respond in a casual, conversational tone."
+    else:
+        system_prompt += " Respond in a professional, informative manner."
     
-    # Add relevant context
-    relevant_context = _extract_relevant_context(message, context, context_type)
-    if relevant_context:
-        base_prompt += f"Relevant Data: {relevant_context}\n"
+    # Add context based on type
+    if context_type == 'detailed':
+        system_prompt += f"\n\nUser Context: {json.dumps(context, indent=2)}"
+    elif context_type == 'minimal':
+        if context.get('health_goals'):
+            system_prompt += f"\n\nUser Health Goals: {context['health_goals']}"
+        if context.get('ailments_concerns'):
+            system_prompt += f"\n\nUser Concerns: {context['ailments_concerns']}"
     
-    # Add relevant resources
-    resources = get_relevant_resources(context_type, _determine_topic(message))
-    if resources:
-        base_prompt += format_resources_for_prompt(resources)
+    # Add relevant global files if available
+    if relevant_files and settings.get('include_sources', True):
+        system_prompt += "\n\nRelevant Knowledge Base:"
+        for file_info in relevant_files:
+            system_prompt += f"\n\nFile: {file_info['filename']}"
+            if file_info.get('category'):
+                system_prompt += f" (Category: {file_info['category']})"
+            if file_info.get('tags'):
+                system_prompt += f" (Tags: {', '.join(file_info['tags'])})"
+            system_prompt += f"\nContent: {file_info['content']}"
     
-    base_prompt += """Provide a short, helpful response (max 2-3 sentences) and include relevant links. Format your response as:
-
-[Your helpful response here]
-
-📚 Helpful Resources:
-- [Link 1: Brief description]
-- [Link 2: Brief description]
-
-Always include at least one link to our Medium blog (kiwellness.medium.com) when relevant, and cite authoritative health sources like Mayo Clinic, WebMD, or Harvard Health for medical advice."""
+    # Add chat history if enabled and available
+    if settings.get('enable_memory', True) and chat_history and len(chat_history) > 0:
+        context_window = settings.get('context_window', 10)
+        system_prompt += f"\n\nRecent Conversation (last {context_window} messages):"
+        for msg in chat_history[-context_window:]:
+            role = "User" if msg.get('role') == 'user' else "Assistant"
+            system_prompt += f"\n{role}: {msg.get('content', '')}"
     
-    # Limit prompt size
-    if len(base_prompt) > 1000:
-        print(f"Warning: Prompt too large ({len(base_prompt)} chars), truncating...")
-        base_prompt = f"""You are a supportive AI Health Coach for {profile_name}. Keep responses short, helpful, and actionable.
-
-Question: {message}
-
-Provide a short, helpful response (max 2-3 sentences) and include relevant links. Format your response as:
-
-[Your helpful response here]
-
-📚 Helpful Resources:
-- [Link 1: Brief description]
-- [Link 2: Brief description]
-
-Always include at least one link to our Medium blog (kiwellness.medium.com) when relevant, and cite authoritative health sources like Mayo Clinic, WebMD, or Harvard Health for medical advice."""
+    # Add the current message
+    system_prompt += f"\n\nCurrent Question: {message}"
     
-    return base_prompt
+    # Add response length instruction
+    max_length = settings.get('max_response_length', 500)
+    system_prompt += f"\n\nPlease provide a response of approximately {max_length} characters or less."
+    
+    return system_prompt
 
 def _determine_topic(message: str) -> str:
     """Determine the specific topic of the user's question"""

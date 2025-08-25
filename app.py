@@ -14,6 +14,7 @@ from flask import Flask, request, jsonify, render_template, render_template
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_login import LoginManager, login_required, current_user
 from dotenv import load_dotenv
 import ollama
 import psycopg2
@@ -28,7 +29,10 @@ from api.chat import chat_bp
 from api.analysis import analysis_bp
 from api.training import training_bp
 from api.health import health_bp
+from api.auth import auth_bp
+from api.settings import settings_bp
 from models.database import init_db, get_db_connection
+from models.user import User, db
 from utils.auth import verify_api_key, rate_limit_by_user
 from resources.health_resources import get_relevant_resources, format_resources_for_prompt
 
@@ -37,6 +41,32 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('AI_SERVICE_SECRET_KEY', 'ai-service-secret-key-change-in-production')
+
+# Database configuration - use the same database as main app
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Normalize old Heroku-style URLs
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    # Fallback to SQLite for development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ki_ai_service.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy
+db.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Please log in to access this page.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # CORS configuration
 CORS(app, origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000').split(','))
@@ -67,6 +97,8 @@ else:
 init_db(DATABASE_URL)
 
 # Register blueprints
+app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(settings_bp, url_prefix='/api/settings')
 app.register_blueprint(chat_bp, url_prefix='/api/chat')
 app.register_blueprint(analysis_bp, url_prefix='/api/analysis')
 app.register_blueprint(training_bp, url_prefix='/api/training')
@@ -74,19 +106,34 @@ app.register_blueprint(health_bp, url_prefix='/api/health')
 
 @app.before_request
 def before_request():
-    """Verify API key for all requests except health checks"""
-    # Skip API key verification for health endpoints and static files
+    """Verify API key for API endpoints and authentication for web pages"""
+    # Skip verification for auth endpoints, health endpoints, and static files
     if request.endpoint and 'static' not in request.endpoint:
-        # Allow health endpoints without API key
-        if 'health' in request.endpoint or request.endpoint in ['health', 'index']:
+        # Allow auth endpoints without verification
+        if 'auth' in request.endpoint:
             return
         
-        if not verify_api_key(request):
-            return jsonify({'error': 'Invalid or missing API key'}), 401
+        # Allow health endpoints without API key
+        if 'health' in request.endpoint or request.endpoint in ['health']:
+            return
+        
+        # For API endpoints, verify API key first
+        if request.path.startswith('/api/'):
+            # Allow settings endpoints with API key only
+            if request.path.startswith('/api/settings/'):
+                if not verify_api_key(request):
+                    return jsonify({'error': 'Invalid or missing API key'}), 401
+            else:
+                if not verify_api_key(request):
+                    return jsonify({'error': 'Invalid or missing API key'}), 401
 
 @app.route('/')
+@login_required
 def index():
-    """Serve the AI Service landing page"""
+    """Serve the AI Service landing page - requires admin login"""
+    # Additional check to ensure user is admin
+    if not current_user.is_admin:
+        return redirect('/auth/logout')
     return render_template('index.html')
 
 @app.route('/health')
