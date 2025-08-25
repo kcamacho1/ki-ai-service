@@ -5,7 +5,7 @@ API endpoints for managing AI settings and global files
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from models.settings import AISettings, GlobalFile, ChatSession, db
+from models.settings import AISettings, GlobalFile, ChatSession, ApiKey, db
 from datetime import datetime
 import os
 import json
@@ -423,4 +423,71 @@ def get_file_categories():
             'categories': [cat[0] for cat in categories]
         })
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================================
+# API KEYS ENDPOINTS
+# ============================================================================
+
+@settings_bp.route('/api-keys', methods=['GET'])
+def get_api_keys():
+    """Get all API keys"""
+    try:
+        api_keys = ApiKey.query.filter_by(is_active=True).order_by(ApiKey.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'api_keys': [key.to_dict() for key in api_keys]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@settings_bp.route('/api-keys', methods=['POST'])
+def create_api_key():
+    """Create new API key"""
+    try:
+        data = request.get_json()
+        
+        if not data.get('key_name'):
+            return jsonify({'success': False, 'error': 'Key name is required'}), 400
+        
+        # Generate a secure API key
+        import secrets
+        import hashlib
+        api_key = secrets.token_urlsafe(32)
+        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+        
+        # Create API key record
+        api_key_record = ApiKey(
+            key_hash=key_hash,
+            key_name=data['key_name'],
+            description=data.get('description', ''),
+            created_by=current_user.id if current_user.is_authenticated else None
+        )
+        
+        db.session.add(api_key_record)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'api_key': api_key,
+            'message': 'API key created successfully'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@settings_bp.route('/api-keys/<int:key_id>', methods=['DELETE'])
+def delete_api_key(key_id):
+    """Delete API key"""
+    try:
+        api_key = ApiKey.query.get_or_404(key_id)
+        api_key.is_active = False
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'API key deleted successfully'
+        })
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500

@@ -113,6 +113,27 @@ def run_migration():
                 ON CONFLICT (name) DO NOTHING
             """))
             
+            # Create API keys table
+            print("🔑 Creating API keys table...")
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS api_keys (
+                    id SERIAL PRIMARY KEY,
+                    key_hash VARCHAR(64) UNIQUE NOT NULL,
+                    key_name VARCHAR(100) NOT NULL,
+                    description TEXT,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_by INTEGER REFERENCES "user"(id),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_used TIMESTAMP,
+                    usage_count INTEGER DEFAULT 0
+                )
+            """))
+            
+            # Create indexes for API keys
+            print("⚡ Creating API keys indexes...")
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active)"))
+            
             conn.commit()
             print("✅ Migration completed successfully!")
             return True

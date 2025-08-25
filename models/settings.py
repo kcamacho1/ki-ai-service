@@ -168,3 +168,32 @@ class ChatSession(db.Model):
     
     def __repr__(self):
         return f'<ChatSession {self.session_id}>'
+
+class ApiKey(db.Model):
+    """API keys for external applications"""
+    __tablename__ = 'api_keys'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key_hash = db.Column(db.String(64), unique=True, nullable=False)
+    key_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_used = db.Column(db.DateTime)
+    usage_count = db.Column(db.Integer, default=0)
+    
+    def to_dict(self):
+        """Convert API key to dictionary"""
+        return {
+            'id': self.id,
+            'key_name': self.key_name,
+            'description': self.description,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_used': self.last_used.isoformat() if self.last_used else None,
+            'usage_count': self.usage_count
+        }
+    
+    def __repr__(self):
+        return f'<ApiKey {self.key_name}>'
