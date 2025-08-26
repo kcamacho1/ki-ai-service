@@ -10,15 +10,53 @@ import json
 import requests
 import uuid
 from datetime import datetime, date, timedelta
-from flask import Flask, request, jsonify, render_template, render_template
-from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_login import LoginManager, login_required, current_user
-from dotenv import load_dotenv
-import ollama
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from flask import Flask, request, jsonify, render_template, render_template, redirect
+
+# Try to import optional dependencies with fallbacks
+try:
+    from flask_cors import CORS
+    CORS_AVAILABLE = True
+except ImportError:
+    print("⚠️ Flask-CORS not available. CORS functionality will be disabled.")
+    CORS_AVAILABLE = False
+
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    LIMITER_AVAILABLE = True
+except ImportError:
+    print("⚠️ Flask-Limiter not available. Rate limiting will be disabled.")
+    LIMITER_AVAILABLE = False
+
+try:
+    from flask_login import LoginManager, login_required, current_user
+    LOGIN_AVAILABLE = True
+except ImportError:
+    print("⚠️ Flask-Login not available. Authentication will be disabled.")
+    LOGIN_AVAILABLE = False
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("⚠️ python-dotenv not available. Environment variables must be set manually.")
+    pass
+
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    print("⚠️ Ollama Python client not available. AI functionality will be disabled.")
+    OLLAMA_AVAILABLE = False
+
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    print("⚠️ PostgreSQL support not available. Database functionality will be limited.")
+    POSTGRES_AVAILABLE = False
+
 from typing import List, Dict, Any, Optional
 
 # Add current directory to Python path for imports
@@ -37,14 +75,17 @@ from utils.auth import verify_api_key, rate_limit_by_user
 from resources.health_resources import get_relevant_resources, format_resources_for_prompt
 
 # Load environment variables
-load_dotenv()
+# load_dotenv() # This line is now handled by the try/except block above
 
 # Configure Ollama client
-if os.getenv('OLLAMA_BASE_URL'):
+if OLLAMA_AVAILABLE and os.getenv('OLLAMA_BASE_URL'):
     ollama.set_host(os.getenv('OLLAMA_BASE_URL'))
 
 def safe_ollama_chat(model, messages, fallback_response="I'm experiencing technical difficulties. Please try again later."):
     """Safely make Ollama API calls with error handling"""
+    if not OLLAMA_AVAILABLE:
+        return "AI service is currently unavailable. Ollama Python client is not installed."
+    
     try:
         response = ollama.chat(model=model, messages=messages)
         return response['message']['content']
@@ -69,27 +110,41 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy
-db.init_app(app)
+try:
+    db.init_app(app)
+    print("✅ SQLAlchemy initialized successfully")
+except Exception as e:
+    print(f"⚠️ SQLAlchemy initialization failed: {e}")
+    print("⚠️ Database functionality will be limited")
 
 # Initialize Flask-Login
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'auth.login'
-login_manager.login_message = 'Please log in to access this page.'
+if LOGIN_AVAILABLE:
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+else:
+    print("Flask-Login not available, authentication will be disabled.")
 
 # CORS configuration
-CORS(app, origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000').split(','))
+if CORS_AVAILABLE:
+    CORS(app, origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000').split(','))
+else:
+    print("Flask-CORS not available, CORS will be disabled.")
 
 # Rate limiting
-limiter = Limiter(
-    app=app,
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"]
-)
+if LIMITER_AVAILABLE:
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["200 per day", "50 per hour"]
+    )
+else:
+    print("Flask-Limiter not available, rate limiting will be disabled.")
 
 # API Configuration
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'mistral')
@@ -107,15 +162,31 @@ else:
     DATABASE_URL = 'sqlite:///ki_ai_service.db'
 
 # Initialize database
-init_db(DATABASE_URL)
+try:
+    if DATABASE_URL:
+        init_db(DATABASE_URL)
+    else:
+        print("⚠️ No DATABASE_URL provided, running without database functionality")
+except Exception as e:
+    print(f"⚠️ Database initialization failed: {e}")
+    print("⚠️ App will run without database functionality")
 
 # Register blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(settings_bp, url_prefix='/api/settings')
-app.register_blueprint(chat_bp, url_prefix='/api/chat')
-app.register_blueprint(analysis_bp, url_prefix='/api/analysis')
-app.register_blueprint(training_bp, url_prefix='/api/training')
-app.register_blueprint(health_bp, url_prefix='/api/health')
+try:
+    app.register_blueprint(chat_bp, url_prefix='/api/chat')
+    app.register_blueprint(analysis_bp, url_prefix='/api/analysis')
+    app.register_blueprint(training_bp, url_prefix='/api/training')
+    app.register_blueprint(health_bp, url_prefix='/api/health')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(settings_bp, url_prefix='/api/settings')
+    print("✅ All API blueprints registered successfully")
+except Exception as e:
+    print(f"⚠️ Some API blueprints failed to register: {e}")
+    # Register only the ones that are available
+    try:
+        app.register_blueprint(health_bp, url_prefix='/api/health')
+    except:
+        pass
 
 @app.before_request
 def before_request():
@@ -146,22 +217,52 @@ def public_index():
     return render_template('index.html')
 
 @app.route('/admin')
-@login_required
 def admin_index():
-    """Serve the AI Service admin page - requires admin login"""
-    # Additional check to ensure user is admin
-    if not current_user.is_admin:
-        return redirect('/auth/logout')
+    """Serve the AI Service admin page - requires admin login if available"""
+    if LOGIN_AVAILABLE:
+        if not current_user.is_authenticated:
+            return redirect('/auth/login')
+        if not current_user.is_admin:
+            return redirect('/auth/logout')
+    else:
+        # If authentication is not available, show a message
+        return jsonify({
+            'message': 'Admin interface requires authentication, but Flask-Login is not available.',
+            'status': 'authentication_disabled'
+        }), 503
     return render_template('index.html')
 
 @app.route('/api-keys')
-@login_required
 def api_keys():
-    """Serve the API keys management page - requires admin login"""
-    # Additional check to ensure user is admin
-    if not current_user.is_admin:
-        return redirect('/auth/logout')
+    """Serve the API keys management page - requires admin login if available"""
+    if LOGIN_AVAILABLE:
+        if not current_user.is_authenticated:
+            return redirect('/auth/login')
+        if not current_user.is_admin:
+            return redirect('/auth/logout')
+    else:
+        # If authentication is not available, show a message
+        return jsonify({
+            'message': 'API keys management requires authentication, but Flask-Login is not available.',
+            'status': 'authentication_disabled'
+        }), 503
     return render_template('api_keys.html')
+
+@app.route('/test')
+def test():
+    """Simple test route to verify the app is running"""
+    return jsonify({
+        'status': 'success',
+        'message': 'Ki Wellness AI Service is running',
+        'timestamp': datetime.utcnow().isoformat(),
+        'dependencies': {
+            'flask_cors': CORS_AVAILABLE,
+            'flask_limiter': LIMITER_AVAILABLE,
+            'flask_login': LOGIN_AVAILABLE,
+            'ollama': OLLAMA_AVAILABLE,
+            'postgresql': POSTGRES_AVAILABLE
+        }
+    })
 
 @app.route('/startup')
 def startup_status():
@@ -169,23 +270,29 @@ def startup_status():
     try:
         # Check database connection
         db_status = 'unknown'
-        try:
-            conn = get_db_connection()
-            conn.close()
-            db_status = 'healthy'
-        except Exception as e:
-            db_status = f'unhealthy: {str(e)}'
+        if POSTGRES_AVAILABLE:
+            try:
+                conn = get_db_connection()
+                conn.close()
+                db_status = 'healthy'
+            except Exception as e:
+                db_status = f'unhealthy: {str(e)}'
+        else:
+            db_status = 'unavailable (PostgreSQL not installed)'
         
         # Check Ollama connection
         ollama_status = 'unknown'
-        try:
-            response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Test"}])
-            if response == "I'm experiencing technical difficulties. Please try again later.":
-                ollama_status = 'unhealthy: connection failed'
-            else:
-                ollama_status = 'healthy'
-        except Exception as e:
-            ollama_status = f'unhealthy: {str(e)}'
+        if OLLAMA_AVAILABLE:
+            try:
+                response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Test"}])
+                if response == "AI service is currently unavailable. Ollama Python client is not installed.":
+                    ollama_status = 'unhealthy: connection failed'
+                else:
+                    ollama_status = 'healthy'
+            except Exception as e:
+                ollama_status = f'unhealthy: {str(e)}'
+        else:
+            ollama_status = 'unavailable (Ollama Python client not installed)'
         
         return jsonify({
             'service': 'Ki Wellness AI Service',
@@ -223,20 +330,26 @@ def status():
     try:
         # Check Ollama connection
         ollama_status = 'healthy'
-        try:
-            response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Hello"}])
-            if response == "I'm experiencing technical difficulties. Please try again later.":
-                ollama_status = 'unhealthy: connection failed'
-        except Exception as e:
-            ollama_status = f'unhealthy: {str(e)}'
+        if OLLAMA_AVAILABLE:
+            try:
+                response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Hello"}])
+                if response == "AI service is currently unavailable. Ollama Python client is not installed.":
+                    ollama_status = 'unhealthy: connection failed'
+            except Exception as e:
+                ollama_status = f'unhealthy: {str(e)}'
+        else:
+            ollama_status = 'unavailable (Ollama Python client not installed)'
         
         # Check database connection
         db_status = 'healthy'
-        try:
-            conn = get_db_connection()
-            conn.close()
-        except Exception as e:
-            db_status = f'unhealthy: {str(e)}'
+        if POSTGRES_AVAILABLE:
+            try:
+                conn = get_db_connection()
+                conn.close()
+            except Exception as e:
+                db_status = f'unhealthy: {str(e)}'
+        else:
+            db_status = 'unavailable (PostgreSQL not installed)'
         
         return jsonify({
             'service': 'Ki Wellness AI Service',
@@ -262,7 +375,7 @@ def ollama_status():
         # Test Ollama connection
         test_response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Test"}])
         
-        if test_response == "I'm experiencing technical difficulties. Please try again later.":
+        if test_response == "AI service is currently unavailable. Ollama Python client is not installed.":
             return jsonify({
                 'status': 'unhealthy',
                 'error': 'Ollama connection failed',
@@ -293,9 +406,22 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Handle any unhandled exceptions"""
+    return jsonify({
+        'error': 'An unexpected error occurred',
+        'message': str(e) if app.debug else 'Internal server error'
+    }), 500
+
 if __name__ == '__main__':
     port = int(os.getenv('AI_SERVICE_PORT', 5001))
     debug = os.getenv('AI_SERVICE_DEBUG', 'false').lower() == 'true'
+    
+    print("🚀 Starting Ki Wellness AI Service...")
+    print(f"📱 Port: {port}")
+    print(f"🔧 Debug: {debug}")
+    print(f"🌐 Environment: {os.getenv('FLASK_ENV', 'development')}")
     
     app.run(
         host='0.0.0.0',
