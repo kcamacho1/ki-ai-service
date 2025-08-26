@@ -18,7 +18,8 @@ def test_ollama_connection():
     ollama_base_url = os.getenv('OLLAMA_BASE_URL')
     if ollama_base_url:
         print(f"📍 Using Ollama at: {ollama_base_url}")
-        ollama.set_host(ollama_base_url)
+        # Note: ollama.set_host() is not available in current version
+        # The base URL should be configured via OLLAMA_HOST environment variable
     else:
         print("📍 Using default Ollama at: http://localhost:11434")
     

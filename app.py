@@ -78,8 +78,8 @@ from resources.health_resources import get_relevant_resources, format_resources_
 # load_dotenv() # This line is now handled by the try/except block above
 
 # Configure Ollama client
-if OLLAMA_AVAILABLE and os.getenv('OLLAMA_BASE_URL'):
-    ollama.set_host(os.getenv('OLLAMA_BASE_URL'))
+# Note: ollama.set_host() is not available in current version
+# The base URL is configured through environment variables
 
 def safe_ollama_chat(model, messages, fallback_response="I'm experiencing technical difficulties. Please try again later."):
     """Safely make Ollama API calls with error handling"""
@@ -87,6 +87,8 @@ def safe_ollama_chat(model, messages, fallback_response="I'm experiencing techni
         return "AI service is currently unavailable. Ollama Python client is not installed."
     
     try:
+        # The ollama client will use the OLLAMA_HOST environment variable if set
+        # This should be configured in the environment before the app starts
         response = ollama.chat(model=model, messages=messages)
         return response['message']['content']
     except Exception as e:
