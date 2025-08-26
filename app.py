@@ -419,13 +419,15 @@ def handle_exception(e):
     }), 500
 
 if __name__ == '__main__':
-    port = int(os.getenv('AI_SERVICE_PORT', 5001))
+    # Use Render's PORT environment variable, fallback to AI_SERVICE_PORT for local development
+    port = int(os.getenv('PORT', os.getenv('AI_SERVICE_PORT', 5001)))
     debug = os.getenv('AI_SERVICE_DEBUG', 'false').lower() == 'true'
     
     print("🚀 Starting Ki Wellness AI Service...")
     print(f"📱 Port: {port}")
     print(f"🔧 Debug: {debug}")
     print(f"🌐 Environment: {os.getenv('FLASK_ENV', 'development')}")
+    print(f"🌐 Render PORT: {os.getenv('PORT', 'NOT SET')}")
     
     app.run(
         host='0.0.0.0',

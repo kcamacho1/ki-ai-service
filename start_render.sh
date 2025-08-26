@@ -4,12 +4,13 @@
 echo "🚀 Starting Ki AI Model on Render..."
 
 # Set Render-specific environment variables
+# Use Render's PORT environment variable (required for Render deployment)
 export PORT=${PORT:-5001}
 export OLLAMA_HOST=${OLLAMA_HOST:-localhost}
 export OLLAMA_PORT=${OLLAMA_PORT:-11434}
 
 echo "🔧 Environment Configuration:"
-echo "  PORT: $PORT"
+echo "  PORT: $PORT (Render's port binding)"
 echo "  OLLAMA_HOST: $OLLAMA_HOST"
 echo "  OLLAMA_PORT: $OLLAMA_PORT"
 echo "  OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral}"
@@ -143,9 +144,9 @@ fi
 
 echo "🎯 Starting Ki AI Model application..."
 echo "🤖 Ollama is running with PID: $OLLAMA_PID"
-echo "🌐 Binding to port: $PORT"
+echo "🌐 Binding to Render PORT: $PORT"
 echo "📱 Using main application: app.py"
 
 # Start the main application with Render port
-# Note: This will replace the current shell process with gunicorn
+# Use Render's PORT environment variable for proper port binding
 exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app

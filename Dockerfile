@@ -24,7 +24,7 @@ COPY . .
 RUN mkdir -p uploads
 
 # Make startup scripts executable
-RUN chmod +x start_ollama.sh start_render.sh
+RUN chmod +x start_ollama.sh start_render.sh start_simple.sh start_production.sh debug_startup.sh
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -35,12 +35,13 @@ ENV OLLAMA_MODEL=mistral
 ENV OLLAMA_HOST=localhost
 ENV OLLAMA_PORT=11434
 
-# Expose port
-EXPOSE 5001
+# Note: Don't expose a hardcoded port - let Render handle port binding
+# Render will provide the PORT environment variable at runtime
 
-# Health check
+# Health check - use the Flask app's health endpoint
+# Use $PORT environment variable for health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5001/api/status || exit 1
+    CMD curl -f http://localhost:${PORT:-5001}/health || exit 1
 
-# Use the Render-optimized startup script
-CMD ["./start_render.sh"]
+# Use the production startup script
+CMD ["./start_production.sh"]
