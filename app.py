@@ -100,6 +100,12 @@ def safe_ollama_chat(model, messages, fallback_response="I'm experiencing techni
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('AI_SERVICE_SECRET_KEY', 'ai-service-secret-key-change-in-production')
 
+# Session configuration for 1-hour expiration
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('FLASK_ENV') == 'production'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 # Database configuration - use the same database as main app
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
@@ -234,7 +240,22 @@ def admin_index():
             'message': 'Admin interface requires authentication, but Flask-Login is not available.',
             'status': 'authentication_disabled'
         }), 503
-    return render_template('index.html')
+    return render_template('chat.html')
+
+@app.route('/chat')
+def chat():
+    """Serve the AI chat interface - requires admin login if available"""
+    if LOGIN_AVAILABLE:
+        if not current_user.is_authenticated:
+            return redirect('/auth/login')
+        if not current_user.is_admin:
+            return redirect('/auth/logout')
+    else:
+        return jsonify({
+            'message': 'Chat interface requires authentication, but Flask-Login is not available.',
+            'status': 'authentication_disabled'
+        }), 503
+    return render_template('chat.html')
 
 @app.route('/api-keys')
 def api_keys():

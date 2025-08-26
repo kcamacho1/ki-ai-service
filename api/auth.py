@@ -34,7 +34,7 @@ def login():
                 return jsonify({'success': False, 'error': 'Access denied. Admin privileges required.'}), 403
             
             login_user(user)
-            return jsonify({'success': True, 'redirect': '/'})
+            return jsonify({'success': True, 'redirect': '/admin'})
         else:
             return jsonify({'success': False, 'error': 'Invalid username or password'}), 401
 

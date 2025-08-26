@@ -82,9 +82,18 @@
                         <span>Service Online</span>
                     </div>
                     
-                    <a href="/auth/login" class="bg-ki-green-600 text-white px-4 py-2 rounded-lg hover:bg-ki-green-700 transition-colors">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Admin Login
-                    </a>
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                        <a href="/admin" class="bg-ki-green-600 text-white px-4 py-2 rounded-lg hover:bg-ki-green-700 transition-colors">
+                            <i class="fas fa-user-shield mr-2"></i>Admin Dashboard
+                        </a>
+                        <a href="/auth/logout" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    {% else %}
+                        <a href="/auth/login" class="bg-ki-green-600 text-white px-4 py-2 rounded-lg hover:bg-ki-green-700 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Admin Login
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -104,9 +113,13 @@
                     Your AI-powered health coach providing personalized wellness guidance, nutrition advice, and health insights to help you achieve your wellness goals.
                 </p>
                 
-                <a href="/auth/login" class="cta-button inline-flex items-center px-8 py-4 bg-gradient-to-r from-ki-green-500 to-ki-green-600 text-white font-semibold rounded-xl text-lg shadow-lg">
-                    <i class="fas fa-sign-in-alt mr-3"></i>
-                    Access AI Health Coach
+                <a href="{% if current_user.is_authenticated and current_user.is_admin %}/admin{% else %}/auth/login{% endif %}" class="cta-button inline-flex items-center px-8 py-4 bg-gradient-to-r from-ki-green-500 to-ki-green-600 text-white font-semibold rounded-xl text-lg shadow-lg">
+                    <i class="fas fa-{% if current_user.is_authenticated and current_user.is_admin %}user-shield{% else %}sign-in-alt{% endif %} mr-3"></i>
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                        Access Admin Dashboard
+                    {% else %}
+                        Access AI Health Coach
+                    {% endif %}
                 </a>
             </div>
         </div>
@@ -225,9 +238,13 @@
                 Join the exclusive group of users who are already experiencing the benefits of AI-powered health guidance.
             </p>
             
-            <a href="/auth/login" class="cta-button inline-flex items-center px-8 py-4 bg-white text-ki-green-600 font-semibold rounded-xl text-lg shadow-lg">
-                <i class="fas fa-sign-in-alt mr-3"></i>
-                Get Started Today
+            <a href="{% if current_user.is_authenticated and current_user.is_admin %}/admin{% else %}/auth/login{% endif %}" class="cta-button inline-flex items-center px-8 py-4 bg-white text-ki-green-600 font-semibold rounded-xl text-lg shadow-lg">
+                <i class="fas fa-{% if current_user.is_authenticated and current_user.is_admin %}user-shield{% else %}sign-in-alt{% endif %} mr-3"></i>
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                    Go to Admin Dashboard
+                {% else %}
+                    Get Started Today
+                {% endif %}
             </a>
         </div>
     </section>

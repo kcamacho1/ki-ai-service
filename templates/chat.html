@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ki Wellness AI Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .chat-container {
             height: calc(100vh - 200px);
@@ -29,6 +31,22 @@
                         <p class="text-green-100">Your Health & Wellness Assistant</p>
                     </div>
                     <div class="flex items-center space-x-4">
+                        <!-- Navigation -->
+                        <nav class="flex items-center space-x-4">
+                            <a href="/" class="px-3 py-1 bg-green-700 rounded-lg text-sm hover:bg-green-800 transition-colors">
+                                <i class="fas fa-home mr-1"></i>Home
+                            </a>
+                            <a href="/chat" class="px-3 py-1 bg-green-800 rounded-lg text-sm hover:bg-green-900 transition-colors">
+                                <i class="fas fa-comments mr-1"></i>Chat
+                            </a>
+                            <a href="/api-keys" class="px-3 py-1 bg-green-700 rounded-lg text-sm hover:bg-green-800 transition-colors">
+                                <i class="fas fa-key mr-1"></i>API Keys
+                            </a>
+                            <a href="/auth/logout" class="px-3 py-1 bg-red-600 rounded-lg text-sm hover:bg-red-700 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                            </a>
+                        </nav>
+                        
                         <button id="statusBtn" class="px-3 py-1 bg-green-700 rounded-lg text-sm hover:bg-green-800">
                             Check Status
                         </button>
