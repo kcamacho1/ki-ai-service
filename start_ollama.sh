@@ -9,10 +9,30 @@ if ! command -v ollama &> /dev/null; then
     curl -fsSL https://ollama.ai/install.sh | sh
 fi
 
+# Check if port 11434 is already in use
+if lsof -i :11434 > /dev/null 2>&1; then
+    echo "⚠️  Port 11434 is already in use. Checking if it's our Ollama instance..."
+    
+    # Check if it's our Ollama process
+    if pgrep -f "ollama serve" > /dev/null; then
+        echo "✅ Found existing Ollama process, will use it"
+        OLLAMA_PID=$(pgrep -f "ollama serve")
+        echo "🤖 Using existing Ollama with PID: $OLLAMA_PID"
+    else
+        echo "❌ Port 11434 is in use by another process. Stopping it..."
+        lsof -ti :11434 | xargs kill -9
+        sleep 2
+    fi
+fi
+
 # Start Ollama service in background (if not already running)
-echo "🤖 Starting Ollama service..."
-ollama serve &
-OLLAMA_PID=$!
+if [ -z "$OLLAMA_PID" ]; then
+    echo "🤖 Starting Ollama service..."
+    # Use 0.0.0.0 instead of default 127.0.0.1 for Render compatibility
+    OLLAMA_HOST=0.0.0.0 ollama serve &
+    OLLAMA_PID=$!
+    echo "🤖 Ollama started with PID: $OLLAMA_PID"
+fi
 
 # Wait for Ollama to be ready
 echo "⏳ Waiting for Ollama to be ready..."
@@ -35,6 +55,18 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
     echo "❌ Ollama failed to start after $max_attempts attempts"
+    echo "🔍 Checking Ollama process status..."
+    if [ -n "$OLLAMA_PID" ]; then
+        if ps -p $OLLAMA_PID > /dev/null; then
+            echo "📊 Ollama process is running (PID: $OLLAMA_PID)"
+            echo "📋 Process details:"
+            ps -p $OLLAMA_PID -o pid,ppid,cmd
+        else
+            echo "❌ Ollama process is not running"
+        fi
+    fi
+    echo "🔍 Checking port usage:"
+    lsof -i :11434 || echo "Port 11434 is free"
     exit 1
 fi
 
@@ -43,8 +75,7 @@ echo "📋 Checking available models..."
 if ollama list | grep -q "mistral"; then
     echo "✅ Mistral model is already available"
 else
-    echo "❌ Mistral model not found. This should have been pulled during container startup."
-    echo "📥 Attempting to pull now..."
+    echo "📥 Mistral model not found. Starting download..."
     
     # Use Python progress monitor if available
     if command -v python3 &> /dev/null && [ -f "ollama_progress.py" ]; then

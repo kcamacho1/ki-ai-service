@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  ki-ai-service:
+    build: .
+    ports:
+      - "${PORT:-5001}:5001"
+    environment:
+      - AI_SERVICE_DATABASE_URL=${DATABASE_URL}
+      - AI_SERVICE_SECRET_KEY=${SECRET_KEY}
+      - VALID_API_KEYS=${VALID_API_KEYS:-ki-wellness-ai-service-key,dev-key}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
+      - OLLAMA_BASE_URL=http://localhost:11434
+      - AI_SERVICE_DEBUG=${AI_SERVICE_DEBUG:-false}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5000,http://localhost:3000}
+      - PORT=${PORT:-5001}
+    volumes:
+      - ./training_files:/app/training_files
+      - ./training_data:/app/training_data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-5001}/api/health/check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G

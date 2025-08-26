@@ -24,7 +24,7 @@ COPY . .
 RUN mkdir -p uploads
 
 # Make startup scripts executable
-RUN chmod +x start_ollama.sh
+RUN chmod +x start_ollama.sh start_render.sh
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -33,6 +33,7 @@ ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 ENV OLLAMA_MODEL=mistral
 ENV OLLAMA_BASE_URL=http://localhost:11434
+ENV OLLAMA_HOST=0.0.0.0
 
 # Expose port
 EXPOSE 5001
@@ -41,5 +42,5 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5001/api/status || exit 1
 
-# Start Ollama, pull the model, then run the app
-CMD ["sh", "-c", "ollama serve & sleep 10 && ollama pull mistral && ./start_ollama.sh"]
+# Use the Render-optimized startup script
+CMD ["./start_render.sh"]
