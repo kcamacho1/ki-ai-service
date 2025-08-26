@@ -72,6 +72,41 @@ else
     echo "⚠️ Ollama may not be ready, but continuing..."
 fi
 
+# Check if the required model is available and pull if needed
+echo "📋 Checking available models..."
+MODEL_NAME=${OLLAMA_MODEL:-mistral}
+if ollama list | grep -q "$MODEL_NAME"; then
+    echo "✅ $MODEL_NAME model is already available"
+else
+    echo "📥 $MODEL_NAME model not found. Starting download..."
+    echo "⏳ This may take several minutes depending on your internet connection..."
+    
+    # Pull the model with progress monitoring
+    ollama pull $MODEL_NAME 2>&1 | while IFS= read -r line; do
+        if [[ $line == *"downloading"* ]]; then
+            echo "📥 Downloading model layers..."
+        elif [[ $line == *"verifying"* ]]; then
+            echo "🔍 Verifying model integrity..."
+        elif [[ $line == *"writing"* ]]; then
+            echo "💾 Writing model to disk..."
+        elif [[ $line == *"success"* ]]; then
+            echo "✅ Model download completed successfully!"
+        elif [[ $line == *"error"* ]]; then
+            echo "❌ Error during download: $line"
+        else
+            echo "📊 $line"
+        fi
+    done
+    
+    # Check if pull was successful
+    if ollama list | grep -q "$MODEL_NAME"; then
+        echo "✅ $MODEL_NAME model is now available"
+    else
+        echo "❌ Failed to download $MODEL_NAME model"
+        echo "⚠️ Continuing without the model - AI features will be limited"
+    fi
+fi
+
 echo "🎯 Starting Flask application with Gunicorn..."
 echo "🌐 Binding to Render PORT: $PORT"
 echo "📱 Using main application: app.py"
