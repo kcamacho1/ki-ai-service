@@ -28,7 +28,7 @@ RUN chmod +x start_ollama.sh start_render.sh
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV FLASK_APP=simple_app.py
+ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 ENV OLLAMA_MODEL=mistral

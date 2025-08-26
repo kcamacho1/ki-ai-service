@@ -141,9 +141,14 @@ def before_request():
                     return jsonify({'error': 'Invalid or missing API key'}), 401
 
 @app.route('/')
+def public_index():
+    """Serve the public AI Service landing page - no login required"""
+    return render_template('index.html')
+
+@app.route('/admin')
 @login_required
-def index():
-    """Serve the AI Service landing page - requires admin login"""
+def admin_index():
+    """Serve the AI Service admin page - requires admin login"""
     # Additional check to ensure user is admin
     if not current_user.is_admin:
         return redirect('/auth/logout')
@@ -157,6 +162,49 @@ def api_keys():
     if not current_user.is_admin:
         return redirect('/auth/logout')
     return render_template('api_keys.html')
+
+@app.route('/startup')
+def startup_status():
+    """Check startup status and any potential issues"""
+    try:
+        # Check database connection
+        db_status = 'unknown'
+        try:
+            conn = get_db_connection()
+            conn.close()
+            db_status = 'healthy'
+        except Exception as e:
+            db_status = f'unhealthy: {str(e)}'
+        
+        # Check Ollama connection
+        ollama_status = 'unknown'
+        try:
+            response = safe_ollama_chat(OLLAMA_MODEL, [{"role": "user", "content": "Test"}])
+            if response == "I'm experiencing technical difficulties. Please try again later.":
+                ollama_status = 'unhealthy: connection failed'
+            else:
+                ollama_status = 'healthy'
+        except Exception as e:
+            ollama_status = f'unhealthy: {str(e)}'
+        
+        return jsonify({
+            'service': 'Ki Wellness AI Service',
+            'startup_status': 'complete',
+            'components': {
+                'database': db_status,
+                'ollama': ollama_status,
+                'flask_app': 'app.py (main application)',
+                'environment': os.getenv('FLASK_ENV', 'development')
+            },
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'service': 'Ki Wellness AI Service',
+            'startup_status': 'error',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
 
 @app.route('/health')
 def health():

@@ -114,6 +114,8 @@ fi
 
 echo "🎯 Starting Ki AI Model application..."
 echo "🤖 Ollama is running with PID: $OLLAMA_PID"
+echo "📱 Using main application: app.py"
 
 # Start the main application
-exec gunicorn --bind 0.0.0.0:5001 --workers 2 --timeout 120 simple_app:app
+# Note: This will replace the current shell process with gunicorn
+exec gunicorn --bind 0.0.0.0:5001 --workers 2 --timeout 120 app:app
