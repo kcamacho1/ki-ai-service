@@ -5,11 +5,13 @@ echo "🚀 Starting Ki AI Model on Render..."
 
 # Set Render-specific environment variables
 export PORT=${PORT:-5001}
-export OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
+export OLLAMA_HOST=${OLLAMA_HOST:-localhost}
+export OLLAMA_PORT=${OLLAMA_PORT:-11434}
 
 echo "🔧 Environment Configuration:"
 echo "  PORT: $PORT"
 echo "  OLLAMA_HOST: $OLLAMA_HOST"
+echo "  OLLAMA_PORT: $OLLAMA_PORT"
 echo "  OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral}"
 
 # Check if Ollama is installed
@@ -61,7 +63,7 @@ if [ -z "$OLLAMA_PID" ]; then
     echo "📍 Binding to: $OLLAMA_HOST:11434"
     
     # Start Ollama with explicit host binding
-    OLLAMA_HOST=$OLLAMA_HOST ollama serve &
+    OLLAMA_HOST=0.0.0.0 ollama serve &
     OLLAMA_PID=$!
     echo "🤖 Ollama started with PID: $OLLAMA_PID"
     
